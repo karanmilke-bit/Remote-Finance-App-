@@ -1,0 +1,13 @@
+# Build outputs
+build/
+dist/
+*.spec
+
+# Python
+__pycache__/
+*.pyc
+
+# Local databases & env
+finance.db
+.env.local
+.DS_Store
