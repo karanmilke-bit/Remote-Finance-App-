@@ -1,0 +1,9 @@
+# Ignore Python desktop files from Vercel deployment
+app.py
+app_supabase.py
+requirements.txt
+build_exe.bat
+PulseFinance.spec
+finance.db
+build/
+dist/
