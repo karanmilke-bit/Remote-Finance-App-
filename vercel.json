@@ -1,18 +1,14 @@
 {
   "version": 2,
   "cleanUrls": true,
-  "routes": [
+  "rewrites": [
     {
-      "src": "/manifest.json",
-      "headers": {
-        "Content-Type": "application/manifest+json",
-        "Cache-Control": "public, max-age=86400"
-      },
-      "dest": "/manifest.json"
+      "source": "/manifest.json",
+      "destination": "/manifest.json"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/api/index.py"
     }
   ]
 }
