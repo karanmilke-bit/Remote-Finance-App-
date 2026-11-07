@@ -41,7 +41,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.42.0/dist/umd/supabase.min.js"></script>
 
   <style>
-    /* Safe-area insets for mobile notches and bottom bars */
     body {
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
@@ -59,33 +58,42 @@
       background: #334155;
       border-radius: 4px;
     }
+    .tab-active {
+      background-color: #4f46e5 !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
   </style>
 </head>
 <body class="bg-[#090d16] text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
 
   <!-- TOP HEADER (Mobile & Desktop) -->
-  <header class="sticky top-0 z-40 bg-[#0f172a]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 sm:px-6 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-        <span class="text-xl font-black text-white tracking-tighter">₹</span>
+  <header class="sticky top-0 z-40 bg-[#0f172a]/90 backdrop-blur-md border-b border-slate-800 px-3.5 py-2.5 sm:px-6 sm:py-3 flex items-center justify-between">
+    <div class="flex items-center gap-2.5 sm:gap-3">
+      <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+        <span class="text-lg sm:text-xl font-black text-white tracking-tighter">₹</span>
       </div>
       <div>
-        <div class="flex items-center gap-2">
-          <h1 class="font-bold text-lg leading-tight tracking-tight text-white">PulseFinance</h1>
-          <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <h1 class="font-bold text-base sm:text-lg leading-tight tracking-tight text-white">PulseFinance</h1>
+          <span class="bg-emerald-500/10 text-emerald-400 text-[9px] sm:text-[10px] font-semibold px-2 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            Supabase Live
+            Cloud Sync
           </span>
         </div>
-        <p class="text-xs text-slate-400 font-medium">Personal Finance • Cloud Sync</p>
+        <p class="text-[11px] sm:text-xs text-slate-400 font-medium">Personal Finance • INR ₹</p>
       </div>
     </div>
 
-    <!-- Actions: Month Selector, Theme Toggle, Refresh -->
+    <!-- Header Actions (Period Selectors, Refresh, Add Entry) -->
     <div class="flex items-center gap-2 sm:gap-3">
-      <div class="relative">
+      <!-- Dynamic selector container (shows Month selector on Monthly view, Year selector on Yearly view) -->
+      <div id="headerPeriodWrapper" class="relative">
         <select id="monthSelector" class="bg-slate-800 text-xs sm:text-sm font-semibold text-slate-200 rounded-lg px-2.5 py-1.5 border border-slate-700 outline-none focus:border-indigo-500 cursor-pointer">
-          <!-- Filled dynamically -->
+          <!-- Filled dynamically with YYYY-MM -->
+        </select>
+        <select id="yearSelector" class="hidden bg-slate-800 text-xs sm:text-sm font-semibold text-slate-200 rounded-lg px-2.5 py-1.5 border border-slate-700 outline-none focus:border-indigo-500 cursor-pointer">
+          <!-- Filled dynamically with YYYY -->
         </select>
       </div>
 
@@ -103,72 +111,31 @@
   <!-- MAIN WRAPPER -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 space-y-5 pb-24 sm:pb-8">
 
-    <!-- KPI ROW (Income, Expenses, Net Balance) -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-      <!-- Income Card -->
-      <div class="bg-gradient-to-br from-slate-900 to-slate-800/90 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-lg shadow-emerald-500/5">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-emerald-500"></div>
-        <div class="flex justify-between items-start">
-          <div>
-            <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Total Monthly Income</p>
-            <h2 id="totalIncome" class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1 tracking-tight">₹0</h2>
-          </div>
-          <div class="p-2 bg-emerald-500/10 rounded-xl text-emerald-400">
-            <i data-lucide="arrow-down-left" class="w-5 h-5"></i>
-          </div>
-        </div>
-        <div class="mt-3 flex items-center gap-1.5 text-xs text-slate-400">
-          <span id="incomeCount" class="font-semibold text-slate-300">0 entries</span>
-          <span>in this month</span>
-        </div>
+    <!-- PAGE VIEW NAVIGATION BAR (Desktop & Mobile) -->
+    <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 p-2 rounded-xl border border-slate-800 backdrop-blur-sm shadow-md">
+      <!-- Page Navigation Switcher -->
+      <div class="flex items-center gap-1 bg-slate-800/80 p-1 rounded-lg w-full sm:w-auto overflow-x-auto custom-scrollbar">
+        <button id="navMonthly" onclick="switchPage('monthly')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md tab-active transition whitespace-nowrap">
+          <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+          Monthly Dashboard
+        </button>
+        <button id="navYearly" onclick="switchPage('yearly')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition whitespace-nowrap">
+          <i data-lucide="calendar-range" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>Yearly Analytics</span>
+          <span class="bg-amber-400/10 text-amber-400 text-[10px] px-1.5 py-0.2 rounded-full border border-amber-400/20 font-mono">NEW</span>
+        </button>
+        <button id="navWeekly" onclick="switchPage('weekly')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition whitespace-nowrap">
+          <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>
+          Weekly (W1–W5)
+        </button>
+        <button id="navTransactions" onclick="switchPage('transactions')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition whitespace-nowrap">
+          <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
+          All Entries
+        </button>
       </div>
 
-      <!-- Expense Card -->
-      <div class="bg-gradient-to-br from-slate-900 to-slate-800/90 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-lg shadow-rose-500/5">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-rose-500"></div>
-        <div class="flex justify-between items-start">
-          <div>
-            <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Total Monthly Expenses</p>
-            <h2 id="totalExpenses" class="text-2xl sm:text-3xl font-black text-rose-400 mt-1 tracking-tight">₹0</h2>
-          </div>
-          <div class="p-2 bg-rose-500/10 rounded-xl text-rose-400">
-            <i data-lucide="arrow-up-right" class="w-5 h-5"></i>
-          </div>
-        </div>
-        <div class="mt-3 flex items-center gap-1.5 text-xs text-slate-400">
-          <span id="expenseCount" class="font-semibold text-slate-300">0 entries</span>
-          <span>in this month</span>
-        </div>
-      </div>
-
-      <!-- Net Balance Card -->
-      <div class="bg-gradient-to-br from-slate-900 to-slate-800/90 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-lg shadow-indigo-500/5">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-sky-400"></div>
-        <div class="flex justify-between items-start">
-          <div>
-            <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Monthly Net Savings</p>
-            <h2 id="netBalance" class="text-2xl sm:text-3xl font-black text-sky-400 mt-1 tracking-tight">₹0</h2>
-          </div>
-          <div class="p-2 bg-sky-500/10 rounded-xl text-sky-400">
-            <i data-lucide="wallet" class="w-5 h-5"></i>
-          </div>
-        </div>
-        <div class="mt-3 flex items-center gap-1.5 text-xs text-slate-400">
-          <span id="savingsRate" class="font-semibold text-sky-300">0%</span>
-          <span>savings rate</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- VIEW MODE / WEEK FILTER TABS -->
-    <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/80 p-2.5 rounded-xl border border-slate-800">
-      <div class="flex items-center gap-1 bg-slate-800/90 p-1 rounded-lg">
-        <button id="btnViewOverview" class="px-3 py-1.5 text-xs font-bold rounded-md bg-indigo-600 text-white transition">Overview</button>
-        <button id="btnViewWeekly" class="px-3 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition">Weekly (W1–W5)</button>
-        <button id="btnViewTransactions" class="px-3 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition">Transactions</button>
-      </div>
-
-      <div class="flex items-center gap-2">
+      <!-- Contextual Quick Filters for Monthly View -->
+      <div id="monthlyFiltersSubbar" class="flex items-center gap-2 ml-auto">
         <label for="weekFilter" class="text-xs font-semibold text-slate-400 hidden sm:inline">Week:</label>
         <select id="weekFilter" class="bg-slate-800 text-xs font-semibold text-slate-200 rounded-lg px-2.5 py-1.5 border border-slate-700 outline-none focus:border-indigo-500">
           <option value="all">Full Month</option>
@@ -185,51 +152,300 @@
           <option value="expense">Expenses Only</option>
         </select>
       </div>
+
+      <!-- Contextual Quick Filter for Yearly View -->
+      <div id="yearlyFiltersSubbar" class="hidden flex items-center gap-2 ml-auto">
+        <span class="text-xs text-amber-400 font-semibold bg-amber-400/10 px-2.5 py-1 rounded-lg border border-amber-400/20 flex items-center gap-1">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+          Annual Summary & Breakdown
+        </span>
+      </div>
     </div>
 
-    <!-- CHARTS SECTION (Line Trajectory + Advanced Pie / Donut Chart) -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+    <!-- ================================================================= -->
+    <!-- PAGE 1: MONTHLY DASHBOARD VIEW                                    -->
+    <!-- ================================================================= -->
+    <div id="pageMonthly" class="space-y-5">
+      <!-- Monthly KPI Row (Income, Expenses, Net Balance) -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <!-- Monthly Income Card -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800/90 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-lg shadow-emerald-500/5">
+          <div class="absolute top-0 left-0 right-0 h-1 bg-emerald-500"></div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Total Monthly Income</p>
+              <h2 id="totalIncome" class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1 tracking-tight">₹0</h2>
+            </div>
+            <div class="p-2 bg-emerald-500/10 rounded-xl text-emerald-400">
+              <i data-lucide="arrow-down-left" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <div class="mt-3 flex items-center gap-1.5 text-xs text-slate-400">
+            <span id="incomeCount" class="font-semibold text-slate-300">0 entries</span>
+            <span>in this month</span>
+          </div>
+        </div>
+
+        <!-- Monthly Expense Card -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800/90 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-lg shadow-rose-500/5">
+          <div class="absolute top-0 left-0 right-0 h-1 bg-rose-500"></div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Total Monthly Expenses</p>
+              <h2 id="totalExpenses" class="text-2xl sm:text-3xl font-black text-rose-400 mt-1 tracking-tight">₹0</h2>
+            </div>
+            <div class="p-2 bg-rose-500/10 rounded-xl text-rose-400">
+              <i data-lucide="arrow-up-right" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <div class="mt-3 flex items-center gap-1.5 text-xs text-slate-400">
+            <span id="expenseCount" class="font-semibold text-slate-300">0 entries</span>
+            <span>in this month</span>
+          </div>
+        </div>
+
+        <!-- Monthly Net Balance Card -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800/90 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-lg shadow-indigo-500/5">
+          <div class="absolute top-0 left-0 right-0 h-1 bg-sky-400"></div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Monthly Net Savings</p>
+              <h2 id="netBalance" class="text-2xl sm:text-3xl font-black text-sky-400 mt-1 tracking-tight">₹0</h2>
+            </div>
+            <div class="p-2 bg-sky-500/10 rounded-xl text-sky-400">
+              <i data-lucide="wallet" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <div class="mt-3 flex items-center gap-1.5 text-xs text-slate-400">
+            <span id="savingsRate" class="font-semibold text-sky-300">0%</span>
+            <span>savings rate</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHARTS SECTION (Line Trajectory + Advanced Pie / Donut Chart) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Monthly Trajectory Chart (7 Cols) -->
+        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="font-bold text-sm sm:text-base text-white">Monthly Cash Flow Trajectory</h3>
+              <p class="text-xs text-slate-400">Cumulative Income vs. Expense progression (₹)</p>
+            </div>
+            <span class="text-[11px] font-semibold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
+              Daily Trend
+            </span>
+          </div>
+          <div class="relative flex-1 min-h-[260px] sm:min-h-[290px]">
+            <canvas id="lineChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Monthly Advanced Pie/Donut Chart with Income Modes (5 Cols) -->
+        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 class="font-bold text-sm sm:text-base text-white">Monthly Distribution</h3>
+              <p class="text-xs text-slate-400">Breakdown by Category & Mode</p>
+            </div>
+            
+            <div class="flex items-center bg-slate-800 p-0.5 rounded-lg border border-slate-700 self-start sm:self-auto">
+              <button id="pieModeIncome" class="px-2.5 py-1 text-[11px] font-bold rounded text-slate-400 hover:text-white transition">Income</button>
+              <button id="pieModeExpense" class="px-2.5 py-1 text-[11px] font-bold rounded bg-indigo-600 text-white transition">Expenses</button>
+              <button id="pieModeDual" class="px-2.5 py-1 text-[11px] font-bold rounded text-slate-400 hover:text-white transition">Dual</button>
+            </div>
+          </div>
+
+          <div class="relative flex-1 min-h-[260px] sm:min-h-[290px] flex items-center justify-center">
+            <canvas id="pieChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- PAGE 2: DEDICATED YEARLY ANALYTICS VIEW                           -->
+    <!-- ================================================================= -->
+    <div id="pageYearly" class="hidden space-y-5">
       
-      <!-- Trajectory Chart (7 Cols) -->
-      <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col">
-        <div class="flex items-center justify-between mb-3">
-          <div>
-            <h3 class="font-bold text-sm sm:text-base text-white">Monthly Cash Flow Trajectory</h3>
-            <p class="text-xs text-slate-400">Cumulative Income vs. Expense progression (₹)</p>
+      <!-- Yearly Top Overview Header Banner -->
+      <div class="bg-gradient-to-r from-amber-500/10 via-slate-900 to-indigo-500/10 border border-amber-500/20 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center shadow-lg shadow-amber-500/20">
+            <i data-lucide="award" class="w-6 h-6"></i>
           </div>
-          <span class="text-[11px] font-semibold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
-            Daily Trend
-          </span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 id="yearlyHeaderTitle" class="text-xl sm:text-2xl font-black text-white tracking-tight">Year 2026 Overview</h2>
+              <span class="text-xs bg-amber-400/20 text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-400/30">12 Months</span>
+            </div>
+            <p class="text-xs text-slate-400">Total Income, Total Expenses, and Net Savings accumulation for the full calendar year</p>
+          </div>
         </div>
-        <div class="relative flex-1 min-h-[260px] sm:min-h-[290px]">
-          <canvas id="lineChart"></canvas>
+
+        <div class="flex items-center gap-2 self-start sm:self-auto">
+          <span class="text-xs text-slate-400 font-semibold">Select Year:</span>
+          <select id="yearlyPageYearSelector" class="bg-slate-800 text-sm font-bold text-amber-300 rounded-xl px-3 py-1.5 border border-amber-500/40 outline-none focus:border-amber-400 cursor-pointer shadow-md">
+            <!-- Populated dynamically -->
+          </select>
         </div>
       </div>
 
-      <!-- Advanced Pie/Donut Chart with Income Modes (5 Cols) -->
-      <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-          <div>
-            <h3 class="font-bold text-sm sm:text-base text-white">Advanced Distribution</h3>
-            <p class="text-xs text-slate-400">Breakdown by Category & Mode</p>
+      <!-- Yearly Primary KPI Cards (Yearly Income, Yearly Expenses, Yearly Savings) -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <!-- 1. Yearly Total Income -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800/95 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-xl shadow-emerald-500/10">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 to-teal-400"></div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold tracking-wider text-emerald-400 uppercase flex items-center gap-1.5">
+                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+                Yearly Total Income
+              </p>
+              <h3 id="yearlyTotalIncome" class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1 tracking-tight">₹0</h3>
+            </div>
+            <div class="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-400">
+              <i data-lucide="arrow-down-left" class="w-6 h-6"></i>
+            </div>
           </div>
-          
-          <!-- Mode Switcher: Income Modes, Expenses, Dual -->
-          <div class="flex items-center bg-slate-800 p-0.5 rounded-lg border border-slate-700 self-start sm:self-auto">
-            <button id="pieModeIncome" class="px-2.5 py-1 text-[11px] font-bold rounded text-slate-400 hover:text-white transition">Income</button>
-            <button id="pieModeExpense" class="px-2.5 py-1 text-[11px] font-bold rounded bg-indigo-600 text-white transition">Expenses</button>
-            <button id="pieModeDual" class="px-2.5 py-1 text-[11px] font-bold rounded text-slate-400 hover:text-white transition">Dual</button>
+          <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span id="yearlyAvgIncome" class="font-semibold text-slate-300">Avg ₹0 / month</span>
+            <span id="yearlyIncCount" class="text-slate-500">0 credits</span>
           </div>
         </div>
 
-        <div class="relative flex-1 min-h-[260px] sm:min-h-[290px] flex items-center justify-center">
-          <canvas id="pieChart"></canvas>
+        <!-- 2. Yearly Total Expenses -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800/95 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-xl shadow-rose-500/10">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 to-pink-500"></div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold tracking-wider text-rose-400 uppercase flex items-center gap-1.5">
+                <i data-lucide="trending-down" class="w-3.5 h-3.5"></i>
+                Yearly Total Expenses
+              </p>
+              <h3 id="yearlyTotalExpenses" class="text-2xl sm:text-3xl font-black text-rose-400 mt-1 tracking-tight">₹0</h3>
+            </div>
+            <div class="p-2.5 bg-rose-500/10 rounded-xl text-rose-400">
+              <i data-lucide="arrow-up-right" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span id="yearlyAvgExpense" class="font-semibold text-slate-300">Avg ₹0 / month</span>
+            <span id="yearlyExpCount" class="text-slate-500">0 debits</span>
+          </div>
+        </div>
+
+        <!-- 3. Yearly Total Savings / Net Flow -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800/95 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-xl shadow-indigo-500/10">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-sky-400 via-indigo-500 to-amber-400"></div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold tracking-wider text-sky-400 uppercase flex items-center gap-1.5">
+                <i data-lucide="piggy-bank" class="w-3.5 h-3.5"></i>
+                Yearly Total Savings
+              </p>
+              <h3 id="yearlyTotalSavings" class="text-2xl sm:text-3xl font-black text-sky-400 mt-1 tracking-tight">₹0</h3>
+            </div>
+            <div class="p-2.5 bg-sky-500/10 rounded-xl text-sky-400">
+              <i data-lucide="wallet" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span id="yearlyAvgSavings" class="font-semibold text-sky-300">Avg ₹0 / month</span>
+            <span id="yearlySavingsRateBadge" class="bg-indigo-500/20 text-indigo-300 font-bold px-2 py-0.5 rounded-full text-[10px]">0% saved</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Yearly Graphs Row 1: Month-by-Month Grouped Bar Chart + Cumulative Annual Growth Line Chart -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- 12-Month Grouped Comparison (7 Cols) -->
+        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="font-bold text-sm sm:text-base text-white">Monthly Comparison Across the Year</h3>
+              <p class="text-xs text-slate-400">Side-by-side Income vs. Expenses for each month (Jan – Dec)</p>
+            </div>
+            <span class="text-[11px] font-semibold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+              12 Months
+            </span>
+          </div>
+          <div class="relative flex-1 min-h-[270px] sm:min-h-[300px]">
+            <canvas id="yearlyMonthlyBarChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Cumulative Annual Net Wealth / Savings Trajectory (5 Cols) -->
+        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="font-bold text-sm sm:text-base text-white">Cumulative Annual Savings Trajectory</h3>
+              <p class="text-xs text-slate-400">Net wealth accumulation curve across the year (₹)</p>
+            </div>
+            <span class="text-[11px] font-semibold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">
+              Net Flow
+            </span>
+          </div>
+          <div class="relative flex-1 min-h-[270px] sm:min-h-[300px]">
+            <canvas id="yearlyCumulativeChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Yearly Graphs Row 2: Annual Advanced Pie Chart & Category Breakdown -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Annual Pie/Donut Chart (5 Cols) -->
+        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 class="font-bold text-sm sm:text-base text-white">Annual Category Breakdown</h3>
+              <p class="text-xs text-slate-400">Full-year income modes & expense categories</p>
+            </div>
+            <div class="flex items-center bg-slate-800 p-0.5 rounded-lg border border-slate-700 self-start sm:self-auto">
+              <button id="yearlyPieModeIncome" class="px-2.5 py-1 text-[11px] font-bold rounded text-slate-400 hover:text-white transition">Income</button>
+              <button id="yearlyPieModeExpense" class="px-2.5 py-1 text-[11px] font-bold rounded bg-indigo-600 text-white transition">Expenses</button>
+              <button id="yearlyPieModeDual" class="px-2.5 py-1 text-[11px] font-bold rounded text-slate-400 hover:text-white transition">Dual</button>
+            </div>
+          </div>
+          <div class="relative flex-1 min-h-[260px] sm:min-h-[290px] flex items-center justify-center">
+            <canvas id="yearlyPieChart"></canvas>
+          </div>
+        </div>
+
+        <!-- 12-Month Performance Summary Table (7 Cols) -->
+        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="font-bold text-sm sm:text-base text-white">Monthly Performance Scorecard</h3>
+              <p class="text-xs text-slate-400">Month-by-month financial breakdown for the selected year</p>
+            </div>
+            <span class="text-xs text-slate-400 font-mono" id="yearlyMonthsRecordedBadge">0 months active</span>
+          </div>
+
+          <div class="overflow-x-auto custom-scrollbar flex-1">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-800/80 text-slate-400 font-bold border-b border-slate-700 uppercase tracking-wider text-[10px]">
+                <tr>
+                  <th class="py-2.5 px-3">Month</th>
+                  <th class="py-2.5 px-3">Income</th>
+                  <th class="py-2.5 px-3">Expenses</th>
+                  <th class="py-2.5 px-3">Net Savings</th>
+                  <th class="py-2.5 px-3 text-right">Savings Rate</th>
+                </tr>
+              </thead>
+              <tbody id="yearlyTableBody" class="divide-y divide-slate-800/60 font-medium">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
     </div>
 
-    <!-- WEEKLY BAR BREAKDOWN (Week 1 to Week 5) -->
+    <!-- ================================================================= -->
+    <!-- SECTION 3: WEEKLY BREAKDOWN VIEW (W1 TO W5)                       -->
+    <!-- ================================================================= -->
     <div id="weeklySection" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5">
       <div class="flex items-center justify-between mb-3">
         <div>
@@ -245,7 +461,9 @@
       </div>
     </div>
 
-    <!-- TRANSACTIONS LIST & FULL EDIT ACCESS -->
+    <!-- ================================================================= -->
+    <!-- SECTION 4: TRANSACTIONS LIST & FULL EDIT ACCESS                   -->
+    <!-- ================================================================= -->
     <div id="transactionsSection" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-800">
         <div>
@@ -267,7 +485,6 @@
 
       <!-- Transaction Items Container -->
       <div id="txList" class="space-y-2 max-h-[480px] overflow-y-auto custom-scrollbar pr-1">
-        <!-- Rendered dynamically -->
         <div class="text-center py-10 text-slate-500 text-sm">Loading transactions from Supabase...</div>
       </div>
     </div>
@@ -275,25 +492,25 @@
   </main>
 
   <!-- MOBILE BOTTOM NAVIGATION (Phone only) -->
-  <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 px-4 py-2 flex items-center justify-around">
-    <button onclick="scrollToSection('main')" class="flex flex-col items-center text-indigo-400">
+  <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 px-3 py-2 flex items-center justify-around shadow-2xl">
+    <button id="mobileNavMonthly" onclick="switchPage('monthly')" class="flex flex-col items-center text-indigo-400">
       <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-      <span class="text-[10px] font-semibold mt-1">Overview</span>
+      <span class="text-[9px] font-bold mt-1">Monthly</span>
     </button>
-    <button onclick="scrollToSection('weeklySection')" class="flex flex-col items-center text-slate-400 hover:text-white">
-      <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-      <span class="text-[10px] font-semibold mt-1">Weekly</span>
+    <button id="mobileNavYearly" onclick="switchPage('yearly')" class="flex flex-col items-center text-slate-400 hover:text-amber-400 transition">
+      <i data-lucide="calendar-range" class="w-5 h-5"></i>
+      <span class="text-[9px] font-bold mt-1">Yearly</span>
     </button>
-    <button onclick="openModal()" class="w-12 h-12 -mt-5 rounded-full bg-gradient-to-tr from-indigo-600 to-emerald-400 text-white flex items-center justify-center shadow-lg shadow-indigo-500/40">
-      <i data-lucide="plus" class="w-6 h-6 stroke-[2.5]"></i>
+    <button onclick="openModal()" class="w-11 h-11 -mt-4 rounded-full bg-gradient-to-tr from-indigo-600 to-emerald-400 text-white flex items-center justify-center shadow-lg shadow-indigo-500/40">
+      <i data-lucide="plus" class="w-5 h-5 stroke-[2.5]"></i>
     </button>
-    <button onclick="scrollToSection('transactionsSection')" class="flex flex-col items-center text-slate-400 hover:text-white">
+    <button id="mobileNavEntries" onclick="switchPage('transactions')" class="flex flex-col items-center text-slate-400 hover:text-white transition">
       <i data-lucide="receipt" class="w-5 h-5"></i>
-      <span class="text-[10px] font-semibold mt-1">Entries</span>
+      <span class="text-[9px] font-bold mt-1">Entries</span>
     </button>
-    <button onclick="openSettingsModal()" class="flex flex-col items-center text-slate-400 hover:text-white">
+    <button onclick="openSettingsModal()" class="flex flex-col items-center text-slate-400 hover:text-white transition">
       <i data-lucide="settings" class="w-5 h-5"></i>
-      <span class="text-[10px] font-semibold mt-1">Settings</span>
+      <span class="text-[9px] font-bold mt-1">Settings</span>
     </button>
   </nav>
 
@@ -359,7 +576,6 @@
           </div>
           <input type="text" id="txCategory" required placeholder="e.g. Groceries, Rent, Freelance" class="w-full bg-slate-800 text-white rounded-xl px-3.5 py-2.5 border border-slate-700 focus:border-indigo-500 outline-none text-sm">
           
-          <!-- Category Quick Pills -->
           <div id="categoryPills" class="flex flex-wrap gap-1.5 mt-2">
             <!-- Dynamic Pills -->
           </div>
@@ -442,10 +658,23 @@
     // --- APPLICATION STATE ---
     let allTransactions = [];
     let currentMonth = new Date().toISOString().substring(0, 7); // "YYYY-MM"
-    let pieMode = 'Expenses'; // 'Income', 'Expenses', 'Dual'
+    let currentYear = new Date().getFullYear().toString(); // "YYYY"
+    let activePage = 'monthly'; // 'monthly', 'yearly', 'weekly', 'transactions'
+    let monthlyPieMode = 'Expenses'; // 'Income', 'Expenses', 'Dual'
+    let yearlyPieMode = 'Expenses'; // 'Income', 'Expenses', 'Dual'
+
+    // Chart instances
     let lineChartInstance = null;
     let pieChartInstance = null;
     let barChartInstance = null;
+    let yearlyMonthlyBarChartInstance = null;
+    let yearlyCumulativeChartInstance = null;
+    let yearlyPieChartInstance = null;
+
+    const MONTH_NAMES = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
 
     const EXPENSE_CATEGORIES = [
       "Rent", "Groceries", "Dining", "Gym", "Tech",
@@ -510,28 +739,38 @@
 
         if (error) throw error;
         allTransactions = data || [];
-        populateMonthSelector();
-        renderDashboard();
+        populateSelectors();
+        renderActivePage();
       } catch (err) {
         console.error('Failed to load from Supabase:', err);
         showToast(`Supabase Error: ${err.message || 'Check connection'}`, true);
       }
     }
 
-    // --- POPULATE MONTH SELECTOR ---
-    function populateMonthSelector() {
-      const selector = document.getElementById('monthSelector');
+    // --- POPULATE MONTH & YEAR SELECTORS ---
+    function populateSelectors() {
+      const monthSelector = document.getElementById('monthSelector');
+      const yearSelector = document.getElementById('yearSelector');
+      const yearlyPageYearSelector = document.getElementById('yearlyPageYearSelector');
+
       const monthsSet = new Set();
+      const yearsSet = new Set();
+
       monthsSet.add(currentMonth);
+      yearsSet.add(currentYear);
 
       allTransactions.forEach(t => {
         if (t.transaction_date) {
-          monthsSet.add(t.transaction_date.substring(0, 7));
+          const ym = t.transaction_date.substring(0, 7);
+          const y = t.transaction_date.substring(0, 4);
+          monthsSet.add(ym);
+          yearsSet.add(y);
         }
       });
 
+      // Populate Months
       const sortedMonths = Array.from(monthsSet).sort().reverse();
-      selector.innerHTML = '';
+      monthSelector.innerHTML = '';
       sortedMonths.forEach(m => {
         const opt = document.createElement('option');
         opt.value = m;
@@ -539,23 +778,151 @@
         const dateObj = new Date(year, parseInt(month) - 1, 1);
         opt.innerText = dateObj.toLocaleString('en-IN', { month: 'short', year: 'numeric' });
         if (m === currentMonth) opt.selected = true;
-        selector.appendChild(opt);
+        monthSelector.appendChild(opt);
+      });
+
+      // Populate Years
+      const sortedYears = Array.from(yearsSet).sort().reverse();
+      yearSelector.innerHTML = '';
+      yearlyPageYearSelector.innerHTML = '';
+
+      sortedYears.forEach(y => {
+        const opt1 = document.createElement('option');
+        opt1.value = y;
+        opt1.innerText = `Year ${y}`;
+        if (y === currentYear) opt1.selected = true;
+        yearSelector.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = y;
+        opt2.innerText = `Year ${y}`;
+        if (y === currentYear) opt2.selected = true;
+        yearlyPageYearSelector.appendChild(opt2);
       });
     }
 
-    // --- FILTER DATA ---
+    // --- PAGE NAVIGATION SWITCHER ---
+    function switchPage(page) {
+      activePage = page;
+
+      // Update button classes
+      const navButtons = {
+        monthly: document.getElementById('navMonthly'),
+        yearly: document.getElementById('navYearly'),
+        weekly: document.getElementById('navWeekly'),
+        transactions: document.getElementById('navTransactions')
+      };
+
+      Object.keys(navButtons).forEach(key => {
+        if (key === page) {
+          navButtons[key].className = 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md tab-active transition whitespace-nowrap';
+        } else {
+          navButtons[key].className = 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition whitespace-nowrap';
+        }
+      });
+
+      // Update mobile bottom nav highlights
+      const mMonthly = document.getElementById('mobileNavMonthly');
+      const mYearly = document.getElementById('mobileNavYearly');
+      const mEntries = document.getElementById('mobileNavEntries');
+
+      mMonthly.className = page === 'monthly' ? 'flex flex-col items-center text-indigo-400' : 'flex flex-col items-center text-slate-400 hover:text-white transition';
+      mYearly.className = page === 'yearly' ? 'flex flex-col items-center text-amber-400' : 'flex flex-col items-center text-slate-400 hover:text-amber-400 transition';
+      mEntries.className = page === 'transactions' ? 'flex flex-col items-center text-indigo-400' : 'flex flex-col items-center text-slate-400 hover:text-white transition';
+
+      // Visibility of Containers
+      const pageMonthly = document.getElementById('pageMonthly');
+      const pageYearly = document.getElementById('pageYearly');
+      const weeklySection = document.getElementById('weeklySection');
+      const transactionsSection = document.getElementById('transactionsSection');
+
+      const headerMonthSel = document.getElementById('monthSelector');
+      const headerYearSel = document.getElementById('yearSelector');
+      const monthlyFiltersSubbar = document.getElementById('monthlyFiltersSubbar');
+      const yearlyFiltersSubbar = document.getElementById('yearlyFiltersSubbar');
+
+      if (page === 'monthly') {
+        pageMonthly.classList.remove('hidden');
+        pageYearly.classList.add('hidden');
+        weeklySection.classList.remove('hidden');
+        transactionsSection.classList.remove('hidden');
+
+        headerMonthSel.classList.remove('hidden');
+        headerYearSel.classList.add('hidden');
+        monthlyFiltersSubbar.classList.remove('hidden');
+        yearlyFiltersSubbar.classList.add('hidden');
+
+        renderMonthlyDashboard();
+      } else if (page === 'yearly') {
+        pageMonthly.classList.add('hidden');
+        pageYearly.classList.remove('hidden');
+        weeklySection.classList.add('hidden');
+        transactionsSection.classList.remove('hidden'); // Transactions still visible below yearly
+
+        headerMonthSel.classList.add('hidden');
+        headerYearSel.classList.remove('hidden');
+        monthlyFiltersSubbar.classList.add('hidden');
+        yearlyFiltersSubbar.classList.remove('hidden');
+
+        renderYearlyAnalytics();
+      } else if (page === 'weekly') {
+        pageMonthly.classList.remove('hidden');
+        pageYearly.classList.add('hidden');
+        weeklySection.classList.remove('hidden');
+        transactionsSection.classList.add('hidden');
+
+        headerMonthSel.classList.remove('hidden');
+        headerYearSel.classList.add('hidden');
+        monthlyFiltersSubbar.classList.remove('hidden');
+        yearlyFiltersSubbar.classList.add('hidden');
+
+        renderMonthlyDashboard();
+        weeklySection.scrollIntoView({ behavior: 'smooth' });
+      } else if (page === 'transactions') {
+        pageMonthly.classList.remove('hidden');
+        pageYearly.classList.add('hidden');
+        weeklySection.classList.add('hidden');
+        transactionsSection.classList.remove('hidden');
+
+        headerMonthSel.classList.remove('hidden');
+        headerYearSel.classList.add('hidden');
+        monthlyFiltersSubbar.classList.remove('hidden');
+        yearlyFiltersSubbar.classList.add('hidden');
+
+        renderMonthlyDashboard();
+        transactionsSection.scrollIntoView({ behavior: 'smooth' });
+      }
+
+      lucide.createIcons();
+    }
+
+    function renderActivePage() {
+      if (activePage === 'yearly') {
+        renderYearlyAnalytics();
+      } else {
+        renderMonthlyDashboard();
+      }
+    }
+
+    // --- FILTER MONTHLY DATA ---
     function getFilteredTransactions() {
       const weekVal = document.getElementById('weekFilter').value;
       const typeVal = document.getElementById('typeFilter').value;
       const searchVal = document.getElementById('searchTxInput').value.toLowerCase().trim();
 
       return allTransactions.filter(t => {
-        if (!t.transaction_date.startsWith(currentMonth)) return false;
-
-        // Week filter
-        if (weekVal !== 'all') {
-          const day = parseInt(t.transaction_date.substring(8, 10));
-          if (getWeekNumber(day) !== parseInt(weekVal)) return false;
+        if (!t.transaction_date) return false;
+        
+        // Scope to active year if in yearly page, else active month
+        if (activePage === 'yearly') {
+          if (!t.transaction_date.startsWith(currentYear)) return false;
+        } else {
+          if (!t.transaction_date.startsWith(currentMonth)) return false;
+          // Week filter (only on monthly view)
+          if (weekVal !== 'all') {
+            const day = parseInt(t.transaction_date.substring(8, 10));
+            if (getWeekNumber(day) !== parseInt(weekVal)) return false;
+          }
         }
 
         // Type filter
@@ -573,9 +940,11 @@
       });
     }
 
-    // --- RENDER DASHBOARD ---
-    function renderDashboard() {
-      const monthTx = allTransactions.filter(t => t.transaction_date.startsWith(currentMonth));
+    // =========================================================================
+    // 1. RENDER MONTHLY DASHBOARD
+    // =========================================================================
+    function renderMonthlyDashboard() {
+      const monthTx = allTransactions.filter(t => t.transaction_date && t.transaction_date.startsWith(currentMonth));
 
       let totalInc = 0;
       let totalExp = 0;
@@ -610,7 +979,7 @@
 
       // Render Charts
       renderLineChart(monthTx);
-      renderPieChart(monthTx);
+      renderMonthlyPieChart(monthTx);
       renderBarChart(monthTx);
 
       // Render Transactions List
@@ -618,7 +987,7 @@
       lucide.createIcons();
     }
 
-    // --- RENDER LINE TRAJECTORY CHART ---
+    // --- MONTHLY TRAJECTORY LINE CHART ---
     function renderLineChart(monthTx) {
       const [year, month] = currentMonth.split('-').map(Number);
       const daysInMonth = new Date(year, month, 0).getDate();
@@ -711,8 +1080,8 @@
       });
     }
 
-    // --- RENDER ADVANCED PIE / DONUT CHART ---
-    function renderPieChart(monthTx) {
+    // --- MONTHLY PIE / DONUT CHART ---
+    function renderMonthlyPieChart(monthTx) {
       const incMap = {};
       const expMap = {};
 
@@ -732,70 +1101,22 @@
       const paletteInc = ['#10b981', '#06b6d4', '#3b82f6', '#14b8a6', '#84cc16', '#6366f1'];
       const paletteExp = ['#f43f5e', '#8b5cf6', '#f59e0b', '#06b6d4', '#ec4899', '#3b82f6'];
 
-      if (pieMode === 'Income') {
+      if (monthlyPieMode === 'Income') {
         const labels = Object.keys(incMap);
         const data = Object.values(incMap);
-        renderSingleDonut(ctx, labels, data, paletteInc, 'Income Modes');
-      } else if (pieMode === 'Expenses') {
+        pieChartInstance = buildDonutChart(ctx, labels, data, paletteInc, 'Income Modes');
+      } else if (monthlyPieMode === 'Expenses') {
         const labels = Object.keys(expMap);
         const data = Object.values(expMap);
-        renderSingleDonut(ctx, labels, data, paletteExp, 'Expense Categories');
+        pieChartInstance = buildDonutChart(ctx, labels, data, paletteExp, 'Expense Categories');
       } else {
-        // Dual ring view
         const totalInc = Object.values(incMap).reduce((a, b) => a + b, 0);
         const totalExp = Object.values(expMap).reduce((a, b) => a + b, 0);
-        renderSingleDonut(ctx, ['Total Income', 'Total Expenses'], [totalInc, totalExp], ['#10b981', '#f43f5e'], 'Cash Flow Ratio');
+        pieChartInstance = buildDonutChart(ctx, ['Total Income', 'Total Expenses'], [totalInc, totalExp], ['#10b981', '#f43f5e'], 'Cash Flow Ratio');
       }
     }
 
-    function renderSingleDonut(ctx, labels, data, colors, titleText) {
-      if (data.length === 0 || data.every(v => v === 0)) {
-        pieChartInstance = new Chart(ctx, {
-          type: 'doughnut',
-          data: {
-            labels: ['No Data'],
-            datasets: [{ data: [1], backgroundColor: ['#1e293b'] }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } }
-          }
-        });
-        return;
-      }
-
-      pieChartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: data,
-            backgroundColor: colors,
-            borderWidth: 2,
-            borderColor: '#0f172a'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '68%',
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: { color: '#94a3b8', font: { size: 10, weight: 'bold' }, padding: 10 }
-            },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => `${ctx.label}: ${formatINR(ctx.raw, false)}`
-              }
-            }
-          }
-        }
-      });
-    }
-
-    // --- RENDER WEEKLY BAR CHART (W1-W5) ---
+    // --- MONTHLY 5-WEEK BAR CHART ---
     function renderBarChart(monthTx) {
       const weekLabels = ['Week 1 (1–7)', 'Week 2 (8–14)', 'Week 3 (15–21)', 'Week 4 (22–28)', 'Week 5 (29–31)'];
       const weekInc = [0, 0, 0, 0, 0];
@@ -855,6 +1176,330 @@
                 color: '#64748b',
                 font: { size: 10 },
                 callback: (val) => formatINR(val, false)
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // =========================================================================
+    // 2. RENDER DEDICATED YEARLY ANALYTICS (PAGE 2)
+    // =========================================================================
+    function renderYearlyAnalytics() {
+      document.getElementById('yearlyHeaderTitle').innerText = `Year ${currentYear} Overview`;
+      const yearTx = allTransactions.filter(t => t.transaction_date && t.transaction_date.startsWith(currentYear));
+
+      let yearlyInc = 0;
+      let yearlyExp = 0;
+      let incCount = 0;
+      let expCount = 0;
+
+      // Group by Month (0 to 11)
+      const monthlyInc = Array(12).fill(0);
+      const monthlyExp = Array(12).fill(0);
+      const monthlyCounts = Array(12).fill(0);
+      const activeMonthsSet = new Set();
+
+      const yearIncMap = {};
+      const yearExpMap = {};
+
+      yearTx.forEach(t => {
+        const amt = parseFloat(t.amount) || 0;
+        const monthNum = parseInt(t.transaction_date.substring(5, 7)) - 1; // 0 to 11
+        activeMonthsSet.add(monthNum);
+
+        const cat = t.category || (t.is_income ? 'Other Income' : 'Other Expense');
+
+        if (t.is_income) {
+          yearlyInc += amt;
+          incCount++;
+          monthlyInc[monthNum] += amt;
+          yearIncMap[cat] = (yearIncMap[cat] || 0) + amt;
+        } else {
+          yearlyExp += amt;
+          expCount++;
+          monthlyExp[monthNum] += amt;
+          yearExpMap[cat] = (yearExpMap[cat] || 0) + amt;
+        }
+        monthlyCounts[monthNum]++;
+      });
+
+      const yearlySavings = yearlyInc - yearlyExp;
+      const numActiveMonths = Math.max(activeMonthsSet.size, 1);
+      const yearlySavingsRate = yearlyInc > 0 ? ((yearlySavings / yearlyInc) * 100).toFixed(1) : '0.0';
+
+      const avgMonthlyInc = yearlyInc / numActiveMonths;
+      const avgMonthlyExp = yearlyExp / numActiveMonths;
+      const avgMonthlySavings = yearlySavings / numActiveMonths;
+
+      // Update Yearly Top KPI Cards
+      document.getElementById('yearlyTotalIncome').innerText = formatINR(yearlyInc, false);
+      document.getElementById('yearlyIncCount').innerText = `${incCount} entries`;
+      document.getElementById('yearlyAvgIncome').innerText = `Avg ${formatINR(avgMonthlyInc, false)} / mo`;
+
+      document.getElementById('yearlyTotalExpenses').innerText = formatINR(yearlyExp, false);
+      document.getElementById('yearlyExpCount').innerText = `${expCount} entries`;
+      document.getElementById('yearlyAvgExpense').innerText = `Avg ${formatINR(avgMonthlyExp, false)} / mo`;
+
+      const yearlySavEl = document.getElementById('yearlyTotalSavings');
+      yearlySavEl.innerText = formatINR(yearlySavings, false);
+      yearlySavEl.className = `text-2xl sm:text-3xl font-black mt-1 tracking-tight ${yearlySavings >= 0 ? 'text-sky-400' : 'text-rose-400'}`;
+
+      document.getElementById('yearlyAvgSavings').innerText = `Avg ${formatINR(avgMonthlySavings, false)} / mo`;
+      document.getElementById('yearlySavingsRateBadge').innerText = `${yearlySavingsRate}% saved`;
+      document.getElementById('yearlyMonthsRecordedBadge').innerText = `${activeMonthsSet.size} of 12 months with entries`;
+
+      // Render Yearly Graphs
+      renderYearlyMonthlyBarChart(monthlyInc, monthlyExp);
+      renderYearlyCumulativeChart(monthlyInc, monthlyExp);
+      renderYearlyPieChart(yearIncMap, yearExpMap);
+
+      // Render 12-Month Table
+      renderYearlyTable(monthlyInc, monthlyExp, monthlyCounts, activeMonthsSet);
+      renderTransactionsList();
+      lucide.createIcons();
+    }
+
+    // --- YEARLY GRAPH 1: 12-MONTH GROUPED BAR CHART ---
+    function renderYearlyMonthlyBarChart(monthlyInc, monthlyExp) {
+      const ctx = document.getElementById('yearlyMonthlyBarChart').getContext('2d');
+      if (yearlyMonthlyBarChartInstance) yearlyMonthlyBarChartInstance.destroy();
+
+      yearlyMonthlyBarChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: MONTH_NAMES,
+          datasets: [
+            {
+              label: 'Income (₹)',
+              data: monthlyInc,
+              backgroundColor: '#10b981',
+              borderRadius: 6
+            },
+            {
+              label: 'Expenses (₹)',
+              data: monthlyExp,
+              backgroundColor: '#f43f5e',
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: { color: '#94a3b8', font: { size: 11, weight: 'bold' } }
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${formatINR(ctx.raw, false)}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: '#1e293b' },
+              ticks: { color: '#64748b', font: { size: 10 } }
+            },
+            y: {
+              grid: { color: '#1e293b' },
+              ticks: {
+                color: '#64748b',
+                font: { size: 10 },
+                callback: (val) => formatINR(val, false)
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // --- YEARLY GRAPH 2: CUMULATIVE ANNUAL WEALTH TRAJECTORY ---
+    function renderYearlyCumulativeChart(monthlyInc, monthlyExp) {
+      const cumInc = [];
+      const cumExp = [];
+      const cumSavings = [];
+      let rInc = 0;
+      let rExp = 0;
+
+      for (let i = 0; i < 12; i++) {
+        rInc += monthlyInc[i];
+        rExp += monthlyExp[i];
+        cumInc.push(rInc);
+        cumExp.push(rExp);
+        cumSavings.push(rInc - rExp);
+      }
+
+      const ctx = document.getElementById('yearlyCumulativeChart').getContext('2d');
+      if (yearlyCumulativeChartInstance) yearlyCumulativeChartInstance.destroy();
+
+      yearlyCumulativeChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: MONTH_NAMES,
+          datasets: [
+            {
+              label: 'Cumulative Net Savings (₹)',
+              data: cumSavings,
+              borderColor: '#38bdf8',
+              backgroundColor: 'rgba(56, 189, 248, 0.15)',
+              fill: true,
+              tension: 0.35,
+              borderWidth: 3,
+              pointRadius: 3.5,
+              pointHoverRadius: 6,
+              zorder: 5
+            },
+            {
+              label: 'Cumulative Expenses (₹)',
+              data: cumExp,
+              borderColor: '#f43f5e',
+              borderDash: [5, 5],
+              fill: false,
+              tension: 0.3,
+              borderWidth: 2,
+              pointRadius: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              labels: { color: '#94a3b8', font: { size: 10.5, weight: 'bold' } }
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${formatINR(ctx.raw, false)}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: '#1e293b' },
+              ticks: { color: '#64748b', font: { size: 10 } }
+            },
+            y: {
+              grid: { color: '#1e293b' },
+              ticks: {
+                color: '#64748b',
+                font: { size: 10 },
+                callback: (val) => formatINR(val, false)
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // --- YEARLY GRAPH 3: ANNUAL PIE / DONUT CHART ---
+    function renderYearlyPieChart(yearIncMap, yearExpMap) {
+      const ctx = document.getElementById('yearlyPieChart').getContext('2d');
+      if (yearlyPieChartInstance) yearlyPieChartInstance.destroy();
+
+      const paletteInc = ['#10b981', '#06b6d4', '#3b82f6', '#14b8a6', '#84cc16', '#6366f1'];
+      const paletteExp = ['#f43f5e', '#8b5cf6', '#f59e0b', '#06b6d4', '#ec4899', '#3b82f6', '#14b8a6', '#eab308'];
+
+      if (yearlyPieMode === 'Income') {
+        const labels = Object.keys(yearIncMap);
+        const data = Object.values(yearIncMap);
+        yearlyPieChartInstance = buildDonutChart(ctx, labels, data, paletteInc, 'Yearly Income Modes');
+      } else if (yearlyPieMode === 'Expenses') {
+        const labels = Object.keys(yearExpMap);
+        const data = Object.values(yearExpMap);
+        yearlyPieChartInstance = buildDonutChart(ctx, labels, data, paletteExp, 'Yearly Expense Categories');
+      } else {
+        const totalInc = Object.values(yearIncMap).reduce((a, b) => a + b, 0);
+        const totalExp = Object.values(yearExpMap).reduce((a, b) => a + b, 0);
+        yearlyPieChartInstance = buildDonutChart(ctx, ['Annual Income', 'Annual Expenses'], [totalInc, totalExp], ['#10b981', '#f43f5e'], 'Yearly Ratio');
+      }
+    }
+
+    // --- YEARLY 12-MONTH TABLE ---
+    function renderYearlyTable(monthlyInc, monthlyExp, monthlyCounts, activeMonthsSet) {
+      const tbody = document.getElementById('yearlyTableBody');
+      tbody.innerHTML = '';
+
+      MONTH_NAMES.forEach((mName, idx) => {
+        const inc = monthlyInc[idx];
+        const exp = monthlyExp[idx];
+        const net = inc - exp;
+        const rate = inc > 0 ? ((net / inc) * 100).toFixed(0) : '0';
+        const hasData = activeMonthsSet.has(idx);
+
+        const row = document.createElement('tr');
+        row.className = hasData ? 'hover:bg-slate-850/60 transition' : 'opacity-40';
+
+        const netClass = net >= 0 ? 'text-sky-400' : 'text-rose-400';
+        const rateBadge = inc > 0
+          ? (net >= 0 ? `<span class="bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded">${rate}%</span>` : `<span class="bg-rose-500/10 text-rose-400 px-1.5 py-0.5 rounded">${rate}%</span>`)
+          : '<span class="text-slate-600">—</span>';
+
+        row.innerHTML = `
+          <td class="py-2.5 px-3 font-bold text-white flex items-center gap-1.5">
+            <span>${mName}</span>
+            ${hasData ? `<button onclick="jumpToMonth('${currentYear}-${String(idx + 1).padStart(2, '0')}')" title="Inspect ${mName}" class="p-1 hover:text-indigo-400 rounded"><i data-lucide="external-link" class="w-3 h-3"></i></button>` : ''}
+          </td>
+          <td class="py-2.5 px-3 text-emerald-400">${inc > 0 ? formatINR(inc, false) : '—'}</td>
+          <td class="py-2.5 px-3 text-rose-400">${exp > 0 ? formatINR(exp, false) : '—'}</td>
+          <td class="py-2.5 px-3 font-bold ${netClass}">${hasData ? formatINR(net, false) : '—'}</td>
+          <td class="py-2.5 px-3 text-right font-mono text-[11px]">${rateBadge}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function jumpToMonth(ym) {
+      currentMonth = ym;
+      document.getElementById('monthSelector').value = ym;
+      switchPage('monthly');
+      showToast(`Switched to ${ym}`);
+    }
+
+    // --- REUSABLE DONUT BUILDER ---
+    function buildDonutChart(ctx, labels, data, colors, titleText) {
+      if (data.length === 0 || data.every(v => v === 0)) {
+        return new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['No Data'],
+            datasets: [{ data: [1], backgroundColor: ['#1e293b'] }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+
+      return new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: colors,
+            borderWidth: 2,
+            borderColor: '#0f172a'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '68%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#94a3b8', font: { size: 10, weight: 'bold' }, padding: 8 }
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.label}: ${formatINR(ctx.raw, false)}`
               }
             }
           }
@@ -1029,7 +1674,6 @@
 
       try {
         if (editId) {
-          // Update Supabase
           const { error } = await supabaseClient
             .from('finance_transactions')
             .update(payload)
@@ -1037,7 +1681,6 @@
           if (error) throw error;
           showToast(`Updated transaction: ${formatINR(amount)}`);
         } else {
-          // Insert to Supabase
           const { error } = await supabaseClient
             .from('finance_transactions')
             .insert([payload]);
@@ -1109,15 +1752,6 @@
       loadTransactions();
     }
 
-    function scrollToSection(id) {
-      if (id === 'main') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        const el = document.getElementById(id);
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-
     // --- EVENT LISTENERS ---
     document.getElementById('addTxHeaderBtn').addEventListener('click', openModal);
     document.getElementById('addTxBtn').addEventListener('click', openModal);
@@ -1128,40 +1762,81 @@
 
     document.getElementById('monthSelector').addEventListener('change', (e) => {
       currentMonth = e.target.value;
-      renderDashboard();
+      renderActivePage();
     });
 
-    document.getElementById('weekFilter').addEventListener('change', renderDashboard);
-    document.getElementById('typeFilter').addEventListener('change', renderDashboard);
+    document.getElementById('yearSelector').addEventListener('change', (e) => {
+      currentYear = e.target.value;
+      document.getElementById('yearlyPageYearSelector').value = currentYear;
+      renderActivePage();
+    });
+
+    document.getElementById('yearlyPageYearSelector').addEventListener('change', (e) => {
+      currentYear = e.target.value;
+      document.getElementById('yearSelector').value = currentYear;
+      renderActivePage();
+    });
+
+    document.getElementById('weekFilter').addEventListener('change', renderActivePage);
+    document.getElementById('typeFilter').addEventListener('change', renderActivePage);
     document.getElementById('searchTxInput').addEventListener('input', renderTransactionsList);
 
-    // Pie mode buttons
+    // Monthly Pie Mode Buttons
     document.getElementById('pieModeIncome').addEventListener('click', () => {
-      pieMode = 'Income';
-      updatePieModeButtons();
-      renderPieChart(allTransactions.filter(t => t.transaction_date.startsWith(currentMonth)));
+      monthlyPieMode = 'Income';
+      updateMonthlyPieModeButtons();
+      renderMonthlyDashboard();
     });
     document.getElementById('pieModeExpense').addEventListener('click', () => {
-      pieMode = 'Expenses';
-      updatePieModeButtons();
-      renderPieChart(allTransactions.filter(t => t.transaction_date.startsWith(currentMonth)));
+      monthlyPieMode = 'Expenses';
+      updateMonthlyPieModeButtons();
+      renderMonthlyDashboard();
     });
     document.getElementById('pieModeDual').addEventListener('click', () => {
-      pieMode = 'Dual';
-      updatePieModeButtons();
-      renderPieChart(allTransactions.filter(t => t.transaction_date.startsWith(currentMonth)));
+      monthlyPieMode = 'Dual';
+      updateMonthlyPieModeButtons();
+      renderMonthlyDashboard();
     });
 
-    function updatePieModeButtons() {
+    function updateMonthlyPieModeButtons() {
       const bInc = document.getElementById('pieModeIncome');
       const bExp = document.getElementById('pieModeExpense');
       const bDual = document.getElementById('pieModeDual');
       const activeCls = 'px-2.5 py-1 text-[11px] font-bold rounded bg-indigo-600 text-white transition';
       const inactiveCls = 'px-2.5 py-1 text-[11px] font-bold rounded text-slate-400 hover:text-white transition';
 
-      bInc.className = pieMode === 'Income' ? activeCls : inactiveCls;
-      bExp.className = pieMode === 'Expenses' ? activeCls : inactiveCls;
-      bDual.className = pieMode === 'Dual' ? activeCls : inactiveCls;
+      bInc.className = monthlyPieMode === 'Income' ? activeCls : inactiveCls;
+      bExp.className = monthlyPieMode === 'Expenses' ? activeCls : inactiveCls;
+      bDual.className = monthlyPieMode === 'Dual' ? activeCls : inactiveCls;
+    }
+
+    // Yearly Pie Mode Buttons
+    document.getElementById('yearlyPieModeIncome').addEventListener('click', () => {
+      yearlyPieMode = 'Income';
+      updateYearlyPieModeButtons();
+      renderYearlyAnalytics();
+    });
+    document.getElementById('yearlyPieModeExpense').addEventListener('click', () => {
+      yearlyPieMode = 'Expenses';
+      updateYearlyPieModeButtons();
+      renderYearlyAnalytics();
+    });
+    document.getElementById('yearlyPieModeDual').addEventListener('click', () => {
+      yearlyPieMode = 'Dual';
+      updateYearlyPieModeButtons();
+      renderYearlyAnalytics();
+    });
+
+    function updateYearlyPieModeButtons() {
+      const bInc = document.getElementById('yearlyPieModeIncome');
+      const bExp = document.getElementById('yearlyPieModeExpense');
+      const bDual = document.getElementById('yearlyPieModeDual');
+      const activeCls = 'px-2.5 py-1 text-[11px] font-bold rounded bg-indigo-600 text-white transition';
+      const inactiveCls = 'px-2.5 py-1 text-[11px] font-bold rounded text-slate-400 hover:text-white transition';
+
+      bInc.className = yearlyPieMode === 'Income' ? activeCls : inactiveCls;
+      bExp.className = yearlyPieMode === 'Expenses' ? activeCls : inactiveCls;
+      bDual.className = yearlyPieMode === 'Dual' ? activeCls : inactiveCls;
     }
 
     // --- INITIALIZATION ---
