@@ -138,6 +138,11 @@
           <span>Recurring & EMIs</span>
           <span id="subscriptionsDueBadge" class="hidden bg-amber-500/20 text-amber-300 text-[10px] px-1.5 py-0.2 rounded-full border border-amber-500/30 font-bold">0 Due</span>
         </button>
+        <button id="navGoals" onclick="switchPage('goals')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition whitespace-nowrap">
+          <i data-lucide="compass" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <span>Savings Goals</span>
+          <span id="goalsCountBadge" class="hidden bg-cyan-500/20 text-cyan-300 text-[10px] px-1.5 py-0.2 rounded-full border border-cyan-500/30 font-bold">4</span>
+        </button>
         <button id="navYearly" onclick="switchPage('yearly')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition whitespace-nowrap">
           <i data-lucide="calendar-range" class="w-3.5 h-3.5 text-amber-400"></i>
           <span>Yearly Analytics</span>
@@ -721,6 +726,113 @@
         </div>
       </div>
     </div>
+
+    <!-- ================================================================= -->
+    <!-- PAGE 5: DEDICATED SAVINGS GOALS & WISHLIST TRACKER (FEATURE 4)    -->
+    <!-- ================================================================= -->
+    <div id="pageGoals" class="hidden space-y-5">
+      <!-- Header Banner with Add Goal CTA -->
+      <div class="bg-gradient-to-r from-cyan-500/10 via-slate-900 to-indigo-500/10 border border-cyan-500/20 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-700 text-white flex items-center justify-center shadow-lg shadow-cyan-500/20 flex-shrink-0">
+            <i data-lucide="compass" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">Savings Goals & Wishlists</h2>
+              <span class="text-xs bg-cyan-400/20 text-cyan-300 font-bold px-2 py-0.5 rounded-full border border-cyan-400/30 font-mono">Vision Board</span>
+            </div>
+            <p class="text-xs text-slate-400">Set targets for emergency funds, gadgets, travel & investments with 1-click funding</p>
+          </div>
+        </div>
+
+        <button onclick="openGoalModal()" class="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-lg shadow-cyan-600/25 flex items-center gap-2 transition self-start sm:self-auto">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Create New Goal</span>
+        </button>
+      </div>
+
+      <!-- 3 KPI Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <!-- 1. Total Target Portfolio -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800/95 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-xl shadow-cyan-500/5">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-cyan-500"></div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Total Target Portfolio</p>
+              <h3 id="goalsTotalTarget" class="text-2xl sm:text-3xl font-black text-cyan-400 mt-1 tracking-tight">₹0</h3>
+            </div>
+            <div class="p-2.5 bg-cyan-500/10 rounded-xl text-cyan-400">
+              <i data-lucide="crosshair" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span id="goalsCountText" class="font-semibold text-slate-300">0 goals active</span>
+            <span class="text-slate-500">Milestone Target</span>
+          </div>
+        </div>
+
+        <!-- 2. Total Saved So Far -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800/95 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-xl shadow-emerald-500/5">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-emerald-500"></div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Total Saved So Far</p>
+              <h3 id="goalsTotalSaved" class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1 tracking-tight">₹0</h3>
+            </div>
+            <div class="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-400">
+              <i data-lucide="piggy-bank" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span id="goalsOverallProgress" class="font-semibold text-emerald-400 font-mono">0% funded</span>
+            <span id="goalsCompletedBadge" class="text-slate-400">0 completed</span>
+          </div>
+        </div>
+
+        <!-- 3. Remaining Gap & Monthly Pace -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800/95 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-xl shadow-indigo-500/5">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-indigo-500"></div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Remaining Gap</p>
+              <h3 id="goalsTotalRemaining" class="text-2xl sm:text-3xl font-black text-indigo-400 mt-1 tracking-tight">₹0</h3>
+            </div>
+            <div class="p-2.5 bg-indigo-500/10 rounded-xl text-indigo-400">
+              <i data-lucide="trending-up" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span id="goalsMonthlyPaceText" class="font-semibold text-indigo-300">₹0 / month needed</span>
+            <span class="text-slate-500">Target Pace</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Goals Grid Container -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div>
+            <h3 class="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+              <span>Your Savings Goals & Milestones</span>
+              <span id="goalsBadgeCount" class="text-xs bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full font-bold">0 Goals</span>
+            </h3>
+            <p class="text-xs text-slate-400">Click "+ Add Funds" on any goal to deposit savings toward your milestone</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openGoalModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
+              <i data-lucide="plus" class="w-3.5 h-3.5 text-cyan-400"></i>
+              Add Goal
+            </button>
+          </div>
+        </div>
+
+        <!-- Goals Cards Grid -->
+        <div id="goalsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          <div class="text-center py-12 text-slate-500 col-span-full">Loading savings goals...</div>
+        </div>
+      </div>
+    </div>
     <!-- ================================================================= -->
     <div id="weeklySection" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5">
       <div class="flex items-center justify-between mb-3">
@@ -1114,6 +1226,139 @@
     </div>
   </div>
 
+  <!-- FEATURE 4: ADD / EDIT GOAL MODAL -->
+  <div id="goalModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-5 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <div class="p-2 rounded-xl bg-cyan-500/10 text-cyan-400">
+            <i data-lucide="compass" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 id="goalModalTitle" class="font-bold text-white text-base">Create Savings Goal</h3>
+            <p class="text-xs text-slate-400">Set milestone target, deadline & track funding progress</p>
+          </div>
+        </div>
+        <button onclick="closeGoalModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="goalForm" class="space-y-4 text-xs">
+        <input type="hidden" id="editGoalId" value="">
+
+        <div>
+          <label for="goalNameInput" class="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[10px]">Goal / Wishlist Name</label>
+          <input type="text" id="goalNameInput" required placeholder="e.g. Emergency Fund, New MacBook, Goa Trip" class="w-full bg-slate-800 text-white rounded-xl p-2.5 border border-slate-700 outline-none focus:border-cyan-500 text-sm">
+          <div id="goalQuickPills" class="flex flex-wrap gap-1.5 mt-2">
+            <!-- Preset Pills -->
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="goalTargetInput" class="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[10px]">Target Amount (₹)</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">₹</span>
+              <input type="number" step="100" id="goalTargetInput" required placeholder="100000" class="w-full bg-slate-800 text-white font-bold text-sm rounded-xl pl-7 pr-3 py-2.5 border border-slate-700 outline-none focus:border-cyan-500">
+            </div>
+          </div>
+          <div>
+            <label for="goalSavedInput" class="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[10px]">Already Saved (₹)</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">₹</span>
+              <input type="number" step="100" id="goalSavedInput" placeholder="0" class="w-full bg-slate-800 text-white font-bold text-sm rounded-xl pl-7 pr-3 py-2.5 border border-slate-700 outline-none focus:border-cyan-500">
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="goalDateInput" class="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[10px]">Target Completion Date</label>
+            <input type="date" id="goalDateInput" class="w-full bg-slate-800 text-white font-semibold text-xs rounded-xl p-2.5 border border-slate-700 outline-none focus:border-cyan-500">
+          </div>
+          <div>
+            <label for="goalCategoryInput" class="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[10px]">Category</label>
+            <select id="goalCategoryInput" class="w-full bg-slate-800 text-white font-semibold text-xs rounded-xl p-2.5 border border-slate-700 outline-none focus:border-cyan-500">
+              <option value="Emergency">Emergency Fund</option>
+              <option value="Gadgets">Gadgets & Tech</option>
+              <option value="Travel">Vacation & Travel</option>
+              <option value="Investment">Mutual Funds / Stocks</option>
+              <option value="Vehicle">Car / Bike</option>
+              <option value="Home">Home & Renovation</option>
+              <option value="Wishlist">Personal Wishlist</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-2 flex gap-2">
+          <button type="submit" class="flex-1 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-600/30 transition">
+            Save Goal Target
+          </button>
+          <button type="button" onclick="closeGoalModal()" class="px-4 py-2.5 bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FEATURE 4: QUICK DEPOSIT FUNDS INTO GOAL MODAL -->
+  <div id="goalDepositModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+            <i data-lucide="piggy-bank" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-white text-base">Add Funds to Goal</h3>
+            <p id="depositGoalName" class="text-xs text-slate-400 truncate max-w-[200px]">Goal Name</p>
+          </div>
+        </div>
+        <button onclick="closeGoalDepositModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="goalDepositForm" class="space-y-4 text-xs">
+        <input type="hidden" id="depositGoalId" value="">
+
+        <div>
+          <label class="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[10px]">Quick Deposit Chips</label>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button type="button" onclick="setDepositAmount(1000)" class="py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded-lg font-bold border border-slate-700 transition">+₹1k</button>
+            <button type="button" onclick="setDepositAmount(5000)" class="py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded-lg font-bold border border-slate-700 transition">+₹5k</button>
+            <button type="button" onclick="setDepositAmount(10000)" class="py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded-lg font-bold border border-slate-700 transition">+₹10k</button>
+            <button type="button" onclick="setDepositAmount(25000)" class="py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded-lg font-bold border border-slate-700 transition">+₹25k</button>
+          </div>
+        </div>
+
+        <div>
+          <label for="depositAmountInput" class="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[10px]">Amount to Deposit (₹)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-base font-bold text-slate-400">₹</span>
+            <input type="number" step="100" id="depositAmountInput" required placeholder="5000" class="w-full bg-slate-800 text-white font-bold text-base rounded-xl pl-8 pr-3.5 py-2.5 border border-slate-700 outline-none focus:border-emerald-500">
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 pt-1">
+          <input type="checkbox" id="depositLogTx" class="rounded border-slate-700 bg-slate-800 text-indigo-600 focus:ring-0">
+          <label for="depositLogTx" class="text-[11px] text-slate-300 cursor-pointer">Also record as a Savings entry in this month's transactions</label>
+        </div>
+
+        <div class="pt-2 flex gap-2">
+          <button type="submit" class="flex-1 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 transition">
+            Confirm Deposit
+          </button>
+          <button type="button" onclick="closeGoalDepositModal()" class="px-4 py-2.5 bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- SETTINGS MODAL -->
   <div id="settingsModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-5 space-y-4">
@@ -1169,9 +1414,10 @@
     let allTransactions = [];
     let allBudgets = [];
     let allSubscriptions = [];
+    let allGoals = [];
     let currentMonth = new Date().toISOString().substring(0, 7); // "YYYY-MM"
     let currentYear = new Date().getFullYear().toString(); // "YYYY"
-    let activePage = 'monthly'; // 'monthly', 'yearly', 'budgets', 'subscriptions', 'weekly', 'transactions'
+    let activePage = 'monthly'; // 'monthly', 'yearly', 'budgets', 'subscriptions', 'goals', 'weekly', 'transactions'
     let monthlyPieMode = 'Expenses'; // 'Income', 'Expenses', 'Dual'
     let yearlyPieMode = 'Expenses'; // 'Income', 'Expenses', 'Dual'
 
@@ -1270,18 +1516,34 @@
       }
     }
 
+    async function loadGoals() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('finance_goals')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        allGoals = data || [];
+      } catch (err) {
+        console.warn('Failed to load goals from Supabase:', err);
+      }
+    }
+
     async function loadTransactions() {
       try {
-        const [txRes, bgtRes, subRes] = await Promise.all([
+        const [txRes, bgtRes, subRes, goalRes] = await Promise.all([
           supabaseClient.from('finance_transactions').select('*').order('transaction_date', { ascending: false }),
           supabaseClient.from('finance_budgets').select('*').order('category', { ascending: true }),
-          supabaseClient.from('finance_subscriptions').select('*').order('due_day', { ascending: true })
+          supabaseClient.from('finance_subscriptions').select('*').order('due_day', { ascending: true }),
+          supabaseClient.from('finance_goals').select('*').order('created_at', { ascending: false })
         ]);
 
         if (txRes.error) throw txRes.error;
         allTransactions = txRes.data || [];
         allBudgets = bgtRes.data || [];
         allSubscriptions = subRes.data || [];
+        allGoals = goalRes.data || [];
 
         populateSelectors();
         renderActivePage();
@@ -1354,6 +1616,7 @@
         monthly: document.getElementById('navMonthly'),
         budgets: document.getElementById('navBudgets'),
         subscriptions: document.getElementById('navSubscriptions'),
+        goals: document.getElementById('navGoals'),
         yearly: document.getElementById('navYearly'),
         weekly: document.getElementById('navWeekly'),
         transactions: document.getElementById('navTransactions')
@@ -1385,6 +1648,7 @@
       const pageYearly = document.getElementById('pageYearly');
       const pageBudgets = document.getElementById('pageBudgets');
       const pageSubscriptions = document.getElementById('pageSubscriptions');
+      const pageGoals = document.getElementById('pageGoals');
       const weeklySection = document.getElementById('weeklySection');
       const transactionsSection = document.getElementById('transactionsSection');
 
@@ -1398,6 +1662,7 @@
         pageYearly.classList.add('hidden');
         pageBudgets.classList.add('hidden');
         pageSubscriptions.classList.add('hidden');
+        pageGoals.classList.add('hidden');
         weeklySection.classList.remove('hidden');
         transactionsSection.classList.remove('hidden');
 
@@ -1412,6 +1677,7 @@
         pageYearly.classList.remove('hidden');
         pageBudgets.classList.add('hidden');
         pageSubscriptions.classList.add('hidden');
+        pageGoals.classList.add('hidden');
         weeklySection.classList.add('hidden');
         transactionsSection.classList.remove('hidden'); // Transactions still visible below yearly
 
@@ -1426,6 +1692,7 @@
         pageYearly.classList.add('hidden');
         pageBudgets.classList.remove('hidden');
         pageSubscriptions.classList.add('hidden');
+        pageGoals.classList.add('hidden');
         weeklySection.classList.add('hidden');
         transactionsSection.classList.add('hidden');
 
@@ -1440,6 +1707,7 @@
         pageYearly.classList.add('hidden');
         pageBudgets.classList.add('hidden');
         pageSubscriptions.classList.remove('hidden');
+        pageGoals.classList.add('hidden');
         weeklySection.classList.add('hidden');
         transactionsSection.classList.add('hidden');
 
@@ -1449,11 +1717,27 @@
         yearlyFiltersSubbar.classList.add('hidden');
 
         renderSubscriptionsPage();
+      } else if (page === 'goals') {
+        pageMonthly.classList.add('hidden');
+        pageYearly.classList.add('hidden');
+        pageBudgets.classList.add('hidden');
+        pageSubscriptions.classList.add('hidden');
+        pageGoals.classList.remove('hidden');
+        weeklySection.classList.add('hidden');
+        transactionsSection.classList.add('hidden');
+
+        headerMonthSel.classList.add('hidden');
+        headerYearSel.classList.add('hidden');
+        monthlyFiltersSubbar.classList.add('hidden');
+        yearlyFiltersSubbar.classList.add('hidden');
+
+        renderGoalsPage();
       } else if (page === 'weekly') {
         pageMonthly.classList.remove('hidden');
         pageYearly.classList.add('hidden');
         pageBudgets.classList.add('hidden');
         pageSubscriptions.classList.add('hidden');
+        pageGoals.classList.add('hidden');
         weeklySection.classList.remove('hidden');
         transactionsSection.classList.add('hidden');
 
@@ -1469,6 +1753,7 @@
         pageYearly.classList.add('hidden');
         pageBudgets.classList.add('hidden');
         pageSubscriptions.classList.add('hidden');
+        pageGoals.classList.add('hidden');
         weeklySection.classList.add('hidden');
         transactionsSection.classList.remove('hidden');
 
@@ -1491,6 +1776,8 @@
         renderBudgetsPage();
       } else if (activePage === 'subscriptions') {
         renderSubscriptionsPage();
+      } else if (activePage === 'goals') {
+        renderGoalsPage();
       } else {
         renderMonthlyDashboard();
       }
@@ -3354,6 +3641,391 @@
       document.getElementById('txCategory').value = res.category;
       document.getElementById('txDate').value = res.date;
       document.getElementById('txNote').value = res.note;
+    }
+
+    // =========================================================================
+    // FEATURE 4: SAVINGS GOALS & WISHLIST LOGIC
+    // =========================================================================
+    function getGoalsStats() {
+      const today = new Date();
+      let totalTarget = 0;
+      let totalSaved = 0;
+      let completedCount = 0;
+      let totalMonthlyPace = 0;
+
+      const enrichedGoals = allGoals.map(goal => {
+        const target = parseFloat(goal.target_amount) || 0;
+        const saved = parseFloat(goal.saved_amount) || 0;
+        totalTarget += target;
+        totalSaved += saved;
+
+        const isCompleted = goal.is_completed || saved >= target;
+        if (isCompleted) completedCount++;
+
+        const pct = target > 0 ? Math.min(Math.round((saved / target) * 100), 100) : 0;
+        const remaining = Math.max(0, target - saved);
+
+        let dateText = 'No deadline';
+        let monthsLeft = 1;
+        let monthlyPace = 0;
+
+        if (goal.target_date) {
+          const tDate = new Date(goal.target_date);
+          if (!isNaN(tDate.getTime())) {
+            const monthsDiff = (tDate.getFullYear() - today.getFullYear()) * 12 + (tDate.getMonth() - today.getMonth());
+            monthsLeft = Math.max(1, monthsDiff);
+            const formattedDate = tDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
+            if (isCompleted) {
+              dateText = 'Target Achieved!';
+            } else if (monthsDiff < 0) {
+              dateText = `Target Passed (${formattedDate})`;
+            } else if (monthsDiff === 0) {
+              dateText = `Target: Due this month (${formattedDate})`;
+            } else {
+              dateText = `Target: ${formattedDate} (${monthsDiff} mo left)`;
+            }
+
+            if (!isCompleted && remaining > 0) {
+              monthlyPace = Math.ceil(remaining / monthsLeft);
+              totalMonthlyPace += monthlyPace;
+            }
+          }
+        } else if (!isCompleted && remaining > 0) {
+          monthlyPace = Math.ceil(remaining / 12);
+          totalMonthlyPace += monthlyPace;
+        }
+
+        return {
+          ...goal,
+          targetNum: target,
+          savedNum: saved,
+          remainingNum: remaining,
+          pct,
+          isCompleted,
+          dateText,
+          monthsLeft,
+          monthlyPace
+        };
+      });
+
+      const overallProgress = totalTarget > 0 ? Math.round((totalSaved / totalTarget) * 100) : 0;
+      const remainingGap = Math.max(0, totalTarget - totalSaved);
+
+      return {
+        all: enrichedGoals,
+        totalTarget,
+        totalSaved,
+        remainingGap,
+        overallProgress,
+        completedCount,
+        activeGoalsCount: allGoals.length,
+        totalMonthlyPace
+      };
+    }
+
+    function renderGoalsPage() {
+      const stats = getGoalsStats();
+
+      document.getElementById('goalsTotalTarget').innerText = formatINR(stats.totalTarget, false);
+      document.getElementById('goalsCountText').innerText = `${stats.activeGoalsCount} goals active`;
+
+      document.getElementById('goalsTotalSaved').innerText = formatINR(stats.totalSaved, false);
+      document.getElementById('goalsOverallProgress').innerText = `${stats.overallProgress}% funded`;
+      document.getElementById('goalsCompletedBadge').innerText = `${stats.completedCount} completed`;
+
+      document.getElementById('goalsTotalRemaining').innerText = formatINR(stats.remainingGap, false);
+      document.getElementById('goalsMonthlyPaceText').innerText = `${formatINR(stats.totalMonthlyPace, false)} / month needed`;
+
+      document.getElementById('goalsBadgeCount').innerText = `${stats.activeGoalsCount} Goals`;
+
+      const navBadge = document.getElementById('goalsCountBadge');
+      if (navBadge) {
+        if (stats.activeGoalsCount > 0) {
+          navBadge.innerText = `${stats.activeGoalsCount}`;
+          navBadge.classList.remove('hidden');
+        } else {
+          navBadge.classList.add('hidden');
+        }
+      }
+
+      const grid = document.getElementById('goalsGrid');
+      if (stats.all.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-12 text-center text-slate-400 space-y-3">
+            <i data-lucide="compass" class="w-10 h-10 text-slate-500 mx-auto"></i>
+            <p class="text-sm">No savings goals or wishlists tracked yet.</p>
+            <button onclick="openGoalModal()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold transition">
+              + Create Your First Goal
+            </button>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      const categoryColors = {
+        Emergency: { bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/30', bar: 'bg-emerald-500' },
+        Gadgets: { bg: 'bg-violet-500/15', text: 'text-violet-400', border: 'border-violet-500/30', bar: 'bg-violet-500' },
+        Travel: { bg: 'bg-sky-500/15', text: 'text-sky-400', border: 'border-sky-500/30', bar: 'bg-sky-500' },
+        Investment: { bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/30', bar: 'bg-amber-500' },
+        Vehicle: { bg: 'bg-rose-500/15', text: 'text-rose-400', border: 'border-rose-500/30', bar: 'bg-rose-500' },
+        Home: { bg: 'bg-teal-500/15', text: 'text-teal-400', border: 'border-teal-500/30', bar: 'bg-teal-500' },
+        Wishlist: { bg: 'bg-indigo-500/15', text: 'text-indigo-400', border: 'border-indigo-500/30', bar: 'bg-indigo-500' }
+      };
+
+      grid.innerHTML = stats.all.map(g => {
+        const theme = categoryColors[g.category] || categoryColors.Wishlist;
+        const safeName = escapeHtml(g.name);
+        const safeCat = escapeHtml(g.category);
+
+        return `
+          <div class="bg-slate-800/80 hover:bg-slate-800 border ${g.isCompleted ? 'border-emerald-500/40' : 'border-slate-800'} rounded-2xl p-4 transition-all duration-200 flex flex-col justify-between gap-3 shadow-lg">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <h4 class="font-bold text-white text-base">${safeName}</h4>
+                  <div class="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5">
+                    <span class="${theme.bg} ${theme.text} border ${theme.border} px-2 py-0.5 rounded text-[10px] font-semibold">${safeCat}</span>
+                    <span>•</span>
+                    <span class="text-slate-300 font-mono text-[11px]">${g.dateText}</span>
+                  </div>
+                </div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${g.isCompleted ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-bold' : 'bg-slate-800 text-slate-300 border-slate-700'}">
+                  ${g.isCompleted ? '🎉 Goal Reached' : `${g.pct}% funded`}
+                </span>
+              </div>
+
+              <!-- Progress Bar & Amounts -->
+              <div class="space-y-1.5 mt-3">
+                <div class="flex justify-between items-baseline text-xs">
+                  <span class="text-slate-400">Saved: <strong class="text-emerald-400 font-mono font-bold">${formatINR(g.savedNum, false)}</strong></span>
+                  <span class="text-slate-400">Target: <strong class="text-white font-mono font-bold">${formatINR(g.targetNum, false)}</strong></span>
+                </div>
+                <div class="w-full h-3 bg-slate-900 rounded-full overflow-hidden border border-slate-700/60 p-0.5">
+                  <div class="h-full rounded-full ${g.isCompleted ? 'bg-emerald-400' : theme.bar} transition-all duration-500" style="width: ${g.pct}%"></div>
+                </div>
+              </div>
+
+              <!-- Monthly Recommendation Box -->
+              <div class="bg-slate-900/60 rounded-xl p-2.5 border border-slate-700/40 flex items-center justify-between text-xs mt-3">
+                <span class="text-slate-400 text-[11px]">
+                  ${g.isCompleted ? 'Goal fully completed!' : `Remaining: <strong class="text-slate-200">${formatINR(g.remainingNum, false)}</strong>`}
+                </span>
+                ${!g.isCompleted && g.monthlyPace > 0 ? `
+                  <span class="text-cyan-400 font-semibold text-[11px] font-mono">
+                    Save ${formatINR(g.monthlyPace, false)}/mo
+                  </span>
+                ` : ''}
+              </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between text-xs">
+              <button onclick="openGoalDepositModal('${g.id}')" class="px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs font-bold shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition">
+                <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                <span>Add Funds</span>
+              </button>
+
+              <div class="flex items-center gap-1.5 ml-auto">
+                <button onclick="openGoalModal('${safeName}', ${g.targetNum}, ${g.savedNum}, '${g.target_date || ''}', '${safeCat}', '${g.id}')" class="px-2.5 py-1 text-slate-300 hover:text-white bg-slate-700/60 hover:bg-slate-700 rounded-lg transition font-medium flex items-center gap-1">
+                  <i data-lucide="edit-3" class="w-3.5 h-3.5 text-indigo-400"></i>
+                  Edit
+                </button>
+                <button onclick="deleteGoal('${g.id}', '${safeName}')" class="p-1 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition" title="Delete">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function openGoalModal(name = '', target = '', saved = '', date = '', cat = 'Emergency', id = '') {
+      document.getElementById('editGoalId').value = id || '';
+      document.getElementById('goalNameInput').value = name || '';
+      document.getElementById('goalTargetInput').value = target || '';
+      document.getElementById('goalSavedInput').value = saved !== '' ? saved : '0';
+      document.getElementById('goalDateInput').value = date || '';
+      document.getElementById('goalCategoryInput').value = cat || 'Emergency';
+      document.getElementById('goalModalTitle').innerText = id ? 'Edit Savings Goal' : 'Create Savings Goal';
+
+      renderGoalQuickPills();
+      document.getElementById('goalModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeGoalModal() {
+      document.getElementById('goalModal').classList.add('hidden');
+    }
+
+    const GOAL_PRESETS = [
+      { name: 'Emergency Fund', cat: 'Emergency', target: 300000 },
+      { name: 'iPhone 17 Pro', cat: 'Gadgets', target: 130000 },
+      { name: 'Goa Vacation', cat: 'Travel', target: 50000 },
+      { name: 'Mutual Fund SIP Portfolio', cat: 'Investment', target: 500000 },
+      { name: 'Car Down Payment', cat: 'Vehicle', target: 200000 }
+    ];
+
+    function renderGoalQuickPills() {
+      const container = document.getElementById('goalQuickPills');
+      if (!container) return;
+      container.innerHTML = GOAL_PRESETS.map(p => `
+        <button type="button" onclick="selectGoalPreset('${p.name}', '${p.cat}', ${p.target})" class="px-2 py-0.5 text-[11px] rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700 transition">
+          ${p.name}
+        </button>
+      `).join('');
+    }
+
+    function selectGoalPreset(name, cat, target) {
+      document.getElementById('goalNameInput').value = name;
+      document.getElementById('goalCategoryInput').value = cat;
+      document.getElementById('goalTargetInput').value = target;
+    }
+
+    document.getElementById('goalForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('editGoalId').value.trim();
+      const name = document.getElementById('goalNameInput').value.trim();
+      const target = parseFloat(document.getElementById('goalTargetInput').value);
+      const saved = parseFloat(document.getElementById('goalSavedInput').value) || 0;
+      const date = document.getElementById('goalDateInput').value || null;
+      const category = document.getElementById('goalCategoryInput').value;
+
+      if (!name) {
+        showToast('Please enter a goal name', true);
+        return;
+      }
+      if (!target || target <= 0) {
+        showToast('Please enter a valid target amount', true);
+        return;
+      }
+
+      const payload = {
+        name,
+        target_amount: target,
+        saved_amount: saved,
+        target_date: date,
+        category,
+        is_completed: saved >= target
+      };
+
+      try {
+        if (id) {
+          const { error } = await supabaseClient
+            .from('finance_goals')
+            .update(payload)
+            .eq('id', id);
+          if (error) throw error;
+          showToast(`Updated goal "${name}"!`);
+        } else {
+          const { error } = await supabaseClient
+            .from('finance_goals')
+            .insert([payload]);
+          if (error) throw error;
+          showToast(`Created goal "${name}"!`);
+        }
+
+        closeGoalModal();
+        await loadTransactions();
+      } catch (err) {
+        console.error('Goal save failed:', err);
+        showToast(`Failed to save goal: ${err.message}`, true);
+      }
+    });
+
+    function openGoalDepositModal(goalId) {
+      const goal = allGoals.find(g => String(g.id) === String(goalId));
+      if (!goal) return;
+
+      document.getElementById('depositGoalId').value = goal.id;
+      document.getElementById('depositGoalName').innerText = `${goal.name} (Current: ${formatINR(goal.saved_amount, false)})`;
+      document.getElementById('depositAmountInput').value = '5000';
+      document.getElementById('depositLogTx').checked = true;
+
+      document.getElementById('goalDepositModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeGoalDepositModal() {
+      document.getElementById('goalDepositModal').classList.add('hidden');
+    }
+
+    function setDepositAmount(amt) {
+      document.getElementById('depositAmountInput').value = amt;
+    }
+
+    document.getElementById('goalDepositForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const goalId = document.getElementById('depositGoalId').value;
+      const depositAmt = parseFloat(document.getElementById('depositAmountInput').value);
+      const logTx = document.getElementById('depositLogTx').checked;
+
+      const goal = allGoals.find(g => String(g.id) === String(goalId));
+      if (!goal) return;
+
+      if (!depositAmt || depositAmt <= 0) {
+        showToast('Please enter a valid deposit amount', true);
+        return;
+      }
+
+      const currentSaved = parseFloat(goal.saved_amount) || 0;
+      const targetAmt = parseFloat(goal.target_amount) || 0;
+      const newSaved = currentSaved + depositAmt;
+      const isCompleted = newSaved >= targetAmt;
+
+      try {
+        const { error: goalErr } = await supabaseClient
+          .from('finance_goals')
+          .update({
+            saved_amount: newSaved,
+            is_completed: isCompleted
+          })
+          .eq('id', goalId);
+
+        if (goalErr) throw goalErr;
+
+        if (logTx) {
+          const todayStr = new Date().toISOString().substring(0, 10);
+          await supabaseClient.from('finance_transactions').insert([{
+            title: `Savings: ${goal.name}`,
+            amount: depositAmt,
+            category: 'Investments',
+            transaction_date: todayStr,
+            is_income: false,
+            note: `Allocated to goal "${goal.name}"`
+          }]);
+        }
+
+        closeGoalDepositModal();
+        showToast(`🎉 Deposited ${formatINR(depositAmt, false)} into "${goal.name}"!`);
+        await loadTransactions();
+      } catch (err) {
+        console.error('Goal deposit failed:', err);
+        showToast(`Failed: ${err.message}`, true);
+      }
+    });
+
+    async function deleteGoal(id, name) {
+      if (!confirm(`Are you sure you want to delete "${name}" from your savings goals?`)) return;
+
+      try {
+        const { error } = await supabaseClient
+          .from('finance_goals')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+
+        showToast(`Deleted "${name}"`);
+        await loadTransactions();
+      } catch (err) {
+        console.error('Goal delete failed:', err);
+        showToast(`Delete failed: ${err.message}`, true);
+      }
     }
 
     // --- SETTINGS MODAL ---
