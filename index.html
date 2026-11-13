@@ -105,6 +105,11 @@
         <i data-lucide="settings" class="w-4 h-4"></i>
       </button>
 
+      <button onclick="openSmsParserModal()" title="Paste Bank or UPI SMS" class="bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/40 font-semibold text-xs sm:text-sm px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+        <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+        <span>Paste SMS</span>
+      </button>
+
       <button id="addTxHeaderBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs sm:text-sm px-3.5 py-1.5 rounded-lg shadow-md shadow-indigo-600/30 flex items-center gap-1.5 transition">
         <i data-lucide="plus" class="w-4 h-4"></i>
         <span class="hidden sm:inline">Add Entry</span>
@@ -808,6 +813,17 @@
       <form id="txForm" class="p-5 space-y-4 overflow-y-auto custom-scrollbar flex-1">
         <input type="hidden" id="editTxId" value="">
 
+        <!-- Feature 3: Quick SMS Auto-Fill Shortcut Banner -->
+        <div class="bg-gradient-to-r from-amber-500/10 via-slate-800 to-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-center justify-between gap-2 shadow-sm">
+          <div class="flex items-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4 text-amber-400 flex-shrink-0"></i>
+            <span class="text-xs text-amber-200 font-medium">Have a Bank or UPI SMS?</span>
+          </div>
+          <button type="button" onclick="openSmsParserModal()" class="px-3 py-1 bg-gradient-to-r from-amber-500/30 to-orange-500/30 hover:from-amber-500/40 hover:to-orange-500/40 text-amber-300 border border-amber-500/40 font-bold text-xs rounded-lg transition whitespace-nowrap shadow-sm">
+            Auto-Fill from SMS
+          </button>
+        </div>
+
         <!-- Transaction Type (Income vs Expense) -->
         <div>
           <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Type</label>
@@ -1005,6 +1021,96 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- FEATURE 3: UPI & BANK SMS QUICK-PARSER MODAL -->
+  <div id="smsParserModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl shadow-2xl p-5 space-y-4 max-h-[92vh] overflow-y-auto custom-scrollbar">
+      <!-- Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 rounded-xl bg-amber-500/10 text-amber-400">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-white text-base">UPI & Bank SMS Parser</h3>
+            <p class="text-xs text-slate-400">Paste bank/UPI SMS to auto-extract amount, payee & category</p>
+          </div>
+        </div>
+        <button onclick="closeSmsParserModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Quick sample pills for testing -->
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Try Quick Samples:</span>
+          <button type="button" onclick="pasteFromClipboard()" class="text-[11px] text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 transition">
+            <i data-lucide="clipboard" class="w-3.5 h-3.5"></i>
+            <span>Paste from Clipboard</span>
+          </button>
+        </div>
+        <div class="flex flex-wrap gap-1.5">
+          <button type="button" onclick="loadSampleSms('swiggy')" class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-300 hover:text-white border border-slate-700 transition">HDFC Swiggy (₹450)</button>
+          <button type="button" onclick="loadSampleSms('uber')" class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-300 hover:text-white border border-slate-700 transition">SBI Uber (₹180)</button>
+          <button type="button" onclick="loadSampleSms('amazon')" class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-300 hover:text-white border border-slate-700 transition">ICICI Amazon (₹2,499)</button>
+          <button type="button" onclick="loadSampleSms('salary')" class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-300 hover:text-white border border-slate-700 transition">Salary Credit (₹75k)</button>
+        </div>
+      </div>
+
+      <!-- Textarea for SMS -->
+      <div>
+        <label for="smsRawInput" class="block text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">SMS Content</label>
+        <textarea id="smsRawInput" rows="3" placeholder="Paste your bank or UPI transaction SMS here...&#10;e.g. Sent Rs.450.00 from HDFC Bank A/C **1234 to SWIGGY on 13-11-26 via UPI Ref 431829104812" class="w-full bg-slate-800 text-white rounded-xl p-3 border border-slate-700 outline-none focus:border-amber-500 text-xs custom-scrollbar font-mono leading-relaxed"></textarea>
+      </div>
+
+      <!-- Live Extraction Preview Card -->
+      <div id="smsParsedCard" class="hidden bg-slate-800/80 border border-slate-700 rounded-xl p-3.5 space-y-3">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-700/60">
+          <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+            <span>Extracted Details Preview</span>
+          </span>
+          <span id="smsPreviewTypeBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">Expense</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <span class="text-slate-400 block text-[10px] uppercase font-semibold">Amount</span>
+            <span id="smsPreviewAmount" class="text-lg font-black text-white">₹0.00</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px] uppercase font-semibold">Payee / Merchant</span>
+            <span id="smsPreviewPayee" class="font-bold text-white text-sm truncate block">-</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px] uppercase font-semibold">Category</span>
+            <span id="smsPreviewCategory" class="font-bold text-indigo-300 bg-indigo-500/15 px-2 py-0.5 rounded text-[11px] inline-block border border-indigo-500/30">-</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px] uppercase font-semibold">Date</span>
+            <span id="smsPreviewDate" class="font-medium text-slate-300 font-mono text-xs">-</span>
+          </div>
+        </div>
+
+        <div id="smsPreviewNotesRow" class="text-[11px] text-slate-400 pt-2 border-t border-slate-700/60 truncate">
+          <span class="text-slate-500">Ref:</span> <span id="smsPreviewRef" class="font-mono text-slate-300">-</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="pt-1 flex flex-col sm:flex-row gap-2">
+        <button type="button" id="smsSaveDirectBtn" onclick="saveParsedSmsDirect()" disabled class="flex-1 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed">
+          <i data-lucide="check" class="w-4 h-4"></i>
+          <span>Save Directly to Cloud (1-Click)</span>
+        </button>
+        <button type="button" id="smsEditInFormBtn" onclick="openFullFormWithParsedSms()" disabled class="py-2.5 px-4 bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white font-semibold text-xs rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 transition disabled:opacity-50 disabled:cursor-not-allowed">
+          <i data-lucide="edit" class="w-3.5 h-3.5"></i>
+          <span>Review & Edit</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -2977,6 +3083,279 @@
       }
     }
 
+    // =========================================================================
+    // FEATURE 3: UPI & BANK SMS QUICK-PARSER LOGIC
+    // =========================================================================
+    let lastParsedSmsResult = null;
+
+    const SAMPLE_SMS = {
+      swiggy: "Sent Rs.450.00 from HDFC Bank A/C **1234 to SWIGGY on 13-11-26 via UPI Ref 431829104812",
+      uber: "Dear SBI User, your A/C 9876 debited by Rs 180.00 on 12-Nov-26 transfer to UBER INDIA Ref No 421098124810",
+      amazon: "Your ICICI Bank Card XX4002 has been used for INR 2,499.00 at AMAZON INDIA on 13-Nov-26. Avail Bal: INR 45,210.00",
+      salary: "Your A/C 1234 is credited with INR 75,000.00 on 01-Nov-26 by INFOSYS TECH LTD SALARY"
+    };
+
+    function parseBankSms(rawText) {
+      if (!rawText || typeof rawText !== 'string') return null;
+      const text = rawText.trim();
+      if (text.length < 10) return null;
+
+      // 1. Transaction Type
+      const isCredit = /(?:credited|received|deposited|refund(?:ed)?|cashback|salary\s+credit)/i.test(text) &&
+                      !/(?:credited\s+to|deposited\s+to)/i.test(text);
+      const isExpense = !isCredit;
+
+      // 2. Amount Extraction
+      let amount = null;
+      const amtRegexes = [
+        /(?:rs\.?|inr|₹)\s*([\d,]+(?:\.\d{1,2})?)/i,
+        /(?:debited|credited)(?:\s+by|\s+with)?\s*(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d{1,2})?)/i,
+        /(?:for|of)\s*(?:rs\.?|inr|₹)\s*([\d,]+(?:\.\d{1,2})?)/i,
+        /([\d,]+(?:\.\d{1,2})?)\s*(?:debited|credited)/i
+      ];
+
+      for (const regex of amtRegexes) {
+        const match = text.match(regex);
+        if (match && match[1]) {
+          const cleaned = match[1].replace(/,/g, '');
+          const parsedNum = parseFloat(cleaned);
+          if (!isNaN(parsedNum) && parsedNum > 0) {
+            amount = parsedNum;
+            break;
+          }
+        }
+      }
+
+      // 3. Payee / Merchant Extraction
+      let payee = '';
+      const payeeRegexes = [
+        /(?:to|transfer to|at|info\/)\s+([A-Za-z0-9\s&'\.-]+?)(?:\s+on|\s+via|\s+ref|\s+upi|\.|\s+bal|\s+avl|\s+available|$)/i,
+        /(?:paid\s+to)\s+([A-Za-z0-9\s&'\.-]+?)(?:\s+using|\s+on|\s+via|\s+ref|\.|$)/i,
+        /(?:vpa|vpa\s+)\s*([A-Za-z0-9\.\-_@]+)/i,
+        /(?:by|from)\s+([A-Za-z0-9\s&'\.-]+?)(?:\s+on|\s+via|\s+ref|\.|$)/i
+      ];
+
+      for (const regex of payeeRegexes) {
+        const match = text.match(regex);
+        if (match && match[1]) {
+          let candidate = match[1].trim();
+          candidate = candidate.replace(/\s+(?:bank|a\/c|account|card|ref|upi|ending|xx\d+)$/i, '').trim();
+          if (candidate.length >= 2 && !/^(bank|a\/c|card|rs|inr)$/i.test(candidate)) {
+            payee = candidate;
+            break;
+          }
+        }
+      }
+
+      if (!payee) {
+        payee = isExpense ? 'Expense via UPI/Bank' : 'Credit via UPI/Bank';
+      }
+
+      // 4. Category Inference
+      const lowerText = (text + ' ' + payee).toLowerCase();
+      let category = isExpense ? 'Other' : 'Salary';
+
+      const categoryMap = [
+        { cat: 'Dining', words: ['swiggy', 'zomato', 'mcdonald', 'domino', 'starbucks', 'kfc', 'cafe', 'restaurant', 'eats', 'food', 'barbeque', 'burger', 'pizza', 'chai', 'tea', 'bakery', 'hotel', 'biryani'] },
+        { cat: 'Groceries', words: ['blinkit', 'zepto', 'instamart', 'dmart', 'bigbasket', 'nature basket', 'supermarket', 'kirana', 'store', 'market', 'grocery', 'fruits', 'veg', 'milk', 'dairy', 'spencer', 'reliance fresh'] },
+        { cat: 'Transport', words: ['uber', 'ola', 'rapido', 'metro', 'irctc', 'fuel', 'petrol', 'diesel', 'hpcl', 'bpcl', 'iocl', 'shell', 'toll', 'fastag', 'railway', 'flight', 'indigo', 'air india', 'parking'] },
+        { cat: 'Shopping', words: ['amazon', 'flipkart', 'myntra', 'ajio', 'meesho', 'nykaa', 'tata cliq', 'zara', 'h&m', 'croma', 'reliance retail', 'shopping', 'mall', 'retail', 'trends', 'lifestyle', 'westside', 'decathlon'] },
+        { cat: 'Entertainment', words: ['netflix', 'spotify', 'prime video', 'hotstar', 'bookmyshow', 'pvr', 'inox', 'youtube', 'playstation', 'steam', 'cinema', 'movie', 'game'] },
+        { cat: 'Utilities', words: ['jio', 'airtel', 'vi', 'bescom', 'tneb', 'mahadiscom', 'electricity', 'gas', 'water', 'broadband', 'recharge', 'bill', 'wifi', 'dth', 'tata play', 'cylinder', 'indane'] },
+        { cat: 'Healthcare', words: ['apollo', 'pharmeasy', '1mg', 'practo', 'hospital', 'clinic', 'chemist', 'dental', 'medical', 'pharmacy', 'doctor', 'lab', 'diagnostics'] },
+        { cat: 'Gym', words: ['cult', 'gym', 'fitness', 'anytime fitness', 'gold gym', 'workout', 'trainer'] },
+        { cat: 'Tech', words: ['apple', 'google', 'microsoft', 'aws', 'github', 'openai', 'anthropic', 'digitalocean', 'domain', 'hosting', 'godaddy'] },
+        { cat: 'Rent', words: ['rent', 'landlord', 'society maintenance', 'nobroker', 'house rent'] }
+      ];
+
+      if (isExpense) {
+        for (const rule of categoryMap) {
+          if (rule.words.some(w => lowerText.includes(w))) {
+            category = rule.cat;
+            break;
+          }
+        }
+      } else {
+        if (/salary|payroll|stipend|wages/i.test(lowerText)) category = 'Salary';
+        else if (/interest|dividend|mf|mutual\s*fund|groww|zerodha|upstox/i.test(lowerText)) category = 'Investments';
+        else if (/refund|cashback/i.test(lowerText)) category = 'Bonus';
+        else category = 'UPI Transfer';
+      }
+
+      // 5. Date Extraction
+      let date = new Date().toISOString().substring(0, 10);
+      const dateMatch = text.match(/\b(\d{1,2})[-/]([A-Za-z]{3}|\d{1,2})[-/](\d{2,4})\b/) ||
+                        text.match(/\b(\d{1,2})([A-Za-z]{3})(\d{2,4})\b/);
+      if (dateMatch) {
+        const day = parseInt(dateMatch[1], 10);
+        const monthPart = dateMatch[2];
+        let year = parseInt(dateMatch[3], 10);
+        if (year < 100) year += 2000;
+
+        let month = -1;
+        if (/^\d+$/.test(monthPart)) {
+          month = parseInt(monthPart, 10) - 1;
+        } else {
+          const monthNamesShort = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+          month = monthNamesShort.indexOf(monthPart.toLowerCase().substring(0, 3));
+        }
+
+        if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+          const parsedDate = new Date(year, month, day);
+          if (!isNaN(parsedDate.getTime())) {
+            date = parsedDate.toISOString().substring(0, 10);
+          }
+        }
+      }
+
+      // 6. Notes & Reference Extractor
+      const noteParts = [];
+      const refMatch = text.match(/(?:UPI Ref|Ref No|Ref|Txn ID|Transaction ID)[:\s]*([A-Za-z0-9]+)/i);
+      if (refMatch) noteParts.push(`Ref: ${refMatch[1]}`);
+
+      const acctMatch = text.match(/(?:A\/c|Account|Card|ending)[:\s]*([*xX\d]+)/i);
+      if (acctMatch) noteParts.push(`Acc: ${acctMatch[1]}`);
+
+      const note = noteParts.length > 0 ? noteParts.join(' | ') : 'Auto-parsed from SMS';
+
+      return {
+        amount,
+        payee,
+        category,
+        date,
+        is_income: isCredit,
+        type: isCredit ? 'Income' : 'Expense',
+        note,
+        raw: text
+      };
+    }
+
+    function openSmsParserModal() {
+      document.getElementById('smsRawInput').value = '';
+      document.getElementById('smsParsedCard').classList.add('hidden');
+      document.getElementById('smsSaveDirectBtn').disabled = true;
+      document.getElementById('smsEditInFormBtn').disabled = true;
+      lastParsedSmsResult = null;
+      document.getElementById('smsParserModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeSmsParserModal() {
+      document.getElementById('smsParserModal').classList.add('hidden');
+    }
+
+    function handleSmsInputChange() {
+      const text = document.getElementById('smsRawInput').value;
+      const res = parseBankSms(text);
+
+      const card = document.getElementById('smsParsedCard');
+      const saveBtn = document.getElementById('smsSaveDirectBtn');
+      const editBtn = document.getElementById('smsEditInFormBtn');
+
+      if (!res || !res.amount) {
+        card.classList.add('hidden');
+        saveBtn.disabled = true;
+        editBtn.disabled = true;
+        lastParsedSmsResult = null;
+        return;
+      }
+
+      lastParsedSmsResult = res;
+
+      document.getElementById('smsPreviewAmount').innerText = formatINR(res.amount, true);
+      document.getElementById('smsPreviewPayee').innerText = res.payee;
+      document.getElementById('smsPreviewCategory').innerText = res.category;
+      document.getElementById('smsPreviewDate').innerText = res.date;
+      document.getElementById('smsPreviewRef').innerText = res.note;
+
+      const typeBadge = document.getElementById('smsPreviewTypeBadge');
+      if (res.is_income) {
+        typeBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        typeBadge.innerText = 'Income';
+      } else {
+        typeBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30';
+        typeBadge.innerText = 'Expense';
+      }
+
+      card.classList.remove('hidden');
+      saveBtn.disabled = false;
+      editBtn.disabled = false;
+      lucide.createIcons();
+    }
+
+    function loadSampleSms(key) {
+      if (!SAMPLE_SMS[key]) return;
+      document.getElementById('smsRawInput').value = SAMPLE_SMS[key];
+      handleSmsInputChange();
+    }
+
+    async function pasteFromClipboard() {
+      try {
+        if (!navigator.clipboard || !navigator.clipboard.readText) {
+          showToast('Please paste SMS into the box (Ctrl+V / Long-press)');
+          return;
+        }
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          document.getElementById('smsRawInput').value = text;
+          handleSmsInputChange();
+          showToast('Pasted SMS from clipboard!');
+        } else {
+          showToast('Clipboard is empty', true);
+        }
+      } catch (err) {
+        console.warn('Clipboard read failed:', err);
+        showToast('Please paste SMS into the box (Ctrl+V / Long-press)');
+      }
+    }
+
+    async function saveParsedSmsDirect() {
+      if (!lastParsedSmsResult || !lastParsedSmsResult.amount) {
+        showToast('No valid amount found in SMS', true);
+        return;
+      }
+
+      const res = lastParsedSmsResult;
+      const payload = {
+        title: res.payee,
+        category: res.category,
+        amount: res.amount,
+        transaction_date: res.date,
+        is_income: res.is_income,
+        note: res.note
+      };
+
+      try {
+        const { error } = await supabaseClient
+          .from('finance_transactions')
+          .insert([payload]);
+
+        if (error) throw error;
+
+        closeSmsParserModal();
+        showToast(`✓ Auto-saved ${res.type}: ${formatINR(res.amount, false)} (${res.payee})`);
+        await loadTransactions();
+      } catch (err) {
+        console.error('Failed to auto-save parsed SMS:', err);
+        showToast(`Failed to save: ${err.message}`, true);
+      }
+    }
+
+    function openFullFormWithParsedSms() {
+      if (!lastParsedSmsResult) return;
+      const res = lastParsedSmsResult;
+
+      closeSmsParserModal();
+
+      openModal();
+      setType(res.is_income ? 'Income' : 'Expense');
+      document.getElementById('txAmount').value = res.amount;
+      document.getElementById('txTitle').value = res.payee;
+      document.getElementById('txCategory').value = res.category;
+      document.getElementById('txDate').value = res.date;
+      document.getElementById('txNote').value = res.note;
+    }
+
     // --- SETTINGS MODAL ---
     function openSettingsModal() {
       document.getElementById('cfgUrl').value = supabaseUrl;
@@ -3044,6 +3423,7 @@
     document.getElementById('weekFilter').addEventListener('change', renderActivePage);
     document.getElementById('typeFilter').addEventListener('change', renderActivePage);
     document.getElementById('searchTxInput').addEventListener('input', renderTransactionsList);
+    document.getElementById('smsRawInput').addEventListener('input', handleSmsInputChange);
 
     // Monthly Pie Mode Buttons
     document.getElementById('pieModeIncome').addEventListener('click', () => {
