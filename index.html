@@ -101,6 +101,10 @@
         <i data-lucide="refresh-cw" class="w-4 h-4"></i>
       </button>
 
+      <button onclick="openSettingsModal()" title="Supabase Settings" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700 transition">
+        <i data-lucide="settings" class="w-4 h-4"></i>
+      </button>
+
       <button id="addTxHeaderBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs sm:text-sm px-3.5 py-1.5 rounded-lg shadow-md shadow-indigo-600/30 flex items-center gap-1.5 transition">
         <i data-lucide="plus" class="w-4 h-4"></i>
         <span class="hidden sm:inline">Add Entry</span>
@@ -119,10 +123,14 @@
           <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
           Monthly Dashboard
         </button>
+        <button id="navBudgets" onclick="switchPage('budgets')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition whitespace-nowrap">
+          <i data-lucide="target" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span>Budgets & Limits</span>
+          <span id="budgetAlertBadge" class="hidden bg-rose-500/20 text-rose-300 text-[10px] px-1.5 py-0.2 rounded-full border border-rose-500/30 font-bold">!</span>
+        </button>
         <button id="navYearly" onclick="switchPage('yearly')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition whitespace-nowrap">
           <i data-lucide="calendar-range" class="w-3.5 h-3.5 text-amber-400"></i>
           <span>Yearly Analytics</span>
-          <span class="bg-amber-400/10 text-amber-400 text-[10px] px-1.5 py-0.2 rounded-full border border-amber-400/20 font-mono">NEW</span>
         </button>
         <button id="navWeekly" onclick="switchPage('weekly')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition whitespace-nowrap">
           <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>
@@ -220,6 +228,28 @@
             <span id="savingsRate" class="font-semibold text-sky-300">0%</span>
             <span>savings rate</span>
           </div>
+        </div>
+      </div>
+
+      <!-- Feature 1: Monthly Budget Health & Safe-to-Spend Alert Banner -->
+      <div id="monthlyBudgetAlertBanner" class="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+        <div class="flex items-center gap-3">
+          <div id="monthlyBudgetStatusIcon" class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h4 id="monthlyBudgetHeadline" class="font-bold text-sm text-white">Monthly Budgets on Track</h4>
+              <span id="monthlyBudgetPercentBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">0% used</span>
+            </div>
+            <p id="monthlyBudgetSubtext" class="text-xs text-slate-400 mt-0.5">Calculating safe-to-spend allowance from Supabase...</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 self-start sm:self-auto">
+          <button onclick="switchPage('budgets')" class="px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 font-semibold text-xs border border-indigo-500/30 flex items-center gap-1.5 transition whitespace-nowrap">
+            <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+            Manage Budgets
+          </button>
         </div>
       </div>
 
@@ -444,7 +474,109 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- SECTION 3: WEEKLY BREAKDOWN VIEW (W1 TO W5)                       -->
+    <!-- PAGE 3: DEDICATED BUDGETS & OVERSPENDING ALERTS VIEW               -->
+    <!-- ================================================================= -->
+    <div id="pageBudgets" class="hidden space-y-5">
+      <!-- Header Banner with Set Budget CTA -->
+      <div class="bg-gradient-to-r from-emerald-500/10 via-slate-900 to-indigo-500/10 border border-emerald-500/20 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 flex-shrink-0">
+            <i data-lucide="target" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 id="budgetsHeaderTitle" class="text-xl sm:text-2xl font-black text-white tracking-tight">Category Spending Budgets</h2>
+              <span class="text-xs bg-emerald-400/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-400/30 font-mono">Live Guard</span>
+            </div>
+            <p class="text-xs text-slate-400">Set limits per expense category, track progress bars, and prevent overspending</p>
+          </div>
+        </div>
+
+        <button onclick="openBudgetModal()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-lg shadow-emerald-600/25 flex items-center gap-2 transition self-start sm:self-auto">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Set Category Limit</span>
+        </button>
+      </div>
+
+      <!-- 3 Budget Health Cards (Total Allocated, Spent so far, Safe-to-Spend per day) -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <!-- 1. Total Allocated Budget -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800/95 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-xl shadow-indigo-500/5">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-indigo-500"></div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Total Monthly Budget</p>
+              <h3 id="budgetTotalAllocated" class="text-2xl sm:text-3xl font-black text-indigo-400 mt-1 tracking-tight">₹0</h3>
+            </div>
+            <div class="p-2.5 bg-indigo-500/10 rounded-xl text-indigo-400">
+              <i data-lucide="clipboard-check" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span id="budgetCategoriesCount" class="font-semibold text-slate-300">0 categories tracked</span>
+            <span class="text-slate-500">Monthly Target</span>
+          </div>
+        </div>
+
+        <!-- 2. Total Budget Spent -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800/95 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-xl shadow-rose-500/5">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-rose-500"></div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Spent Across Budgets</p>
+              <h3 id="budgetTotalSpent" class="text-2xl sm:text-3xl font-black text-rose-400 mt-1 tracking-tight">₹0</h3>
+            </div>
+            <div class="p-2.5 bg-rose-500/10 rounded-xl text-rose-400">
+              <i data-lucide="pie-chart" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span id="budgetSpentPercent" class="font-semibold text-slate-300">0% utilized</span>
+            <span id="budgetRemainingOverall" class="text-slate-400 font-mono">₹0 left</span>
+          </div>
+        </div>
+
+        <!-- 3. Safe to Spend per day -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800/95 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-xl shadow-emerald-500/5">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-emerald-500"></div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold tracking-wider text-emerald-400 uppercase">Safe to Spend Daily</p>
+              <h3 id="budgetSafeToSpendDaily" class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1 tracking-tight">₹0 / day</h3>
+            </div>
+            <div class="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-400">
+              <i data-lucide="shield-alert" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span id="budgetDaysRemainingText" class="font-semibold text-slate-300">0 days left in month</span>
+            <span class="text-emerald-400 font-semibold">Spend Pace</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Budgets Grid -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div>
+            <h3 class="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+              <span>Category Budget Breakdown</span>
+              <span id="budgetsBadgeAlertCount" class="hidden text-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded-full font-bold">0 Over</span>
+            </h3>
+            <p class="text-xs text-slate-400">Track remaining limits, overspending warnings, and edit monthly quotas</p>
+          </div>
+          <button onclick="openBudgetModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 flex items-center gap-1.5 transition self-start sm:self-auto">
+            <i data-lucide="plus" class="w-3.5 h-3.5 text-emerald-400"></i>
+            Add Category Budget
+          </button>
+        </div>
+
+        <!-- Cards Container -->
+        <div id="budgetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          <div class="text-center py-12 text-slate-500 col-span-full">Loading category budgets...</div>
+        </div>
+      </div>
+    </div>
     <!-- ================================================================= -->
     <div id="weeklySection" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5">
       <div class="flex items-center justify-between mb-3">
@@ -504,13 +636,13 @@
     <button onclick="openModal()" class="w-11 h-11 -mt-4 rounded-full bg-gradient-to-tr from-indigo-600 to-emerald-400 text-white flex items-center justify-center shadow-lg shadow-indigo-500/40">
       <i data-lucide="plus" class="w-5 h-5 stroke-[2.5]"></i>
     </button>
+    <button id="mobileNavBudgets" onclick="switchPage('budgets')" class="flex flex-col items-center text-slate-400 hover:text-emerald-400 transition">
+      <i data-lucide="target" class="w-5 h-5"></i>
+      <span class="text-[9px] font-bold mt-1">Budgets</span>
+    </button>
     <button id="mobileNavEntries" onclick="switchPage('transactions')" class="flex flex-col items-center text-slate-400 hover:text-white transition">
       <i data-lucide="receipt" class="w-5 h-5"></i>
       <span class="text-[9px] font-bold mt-1">Entries</span>
-    </button>
-    <button onclick="openSettingsModal()" class="flex flex-col items-center text-slate-400 hover:text-white transition">
-      <i data-lucide="settings" class="w-5 h-5"></i>
-      <span class="text-[9px] font-bold mt-1">Settings</span>
     </button>
   </nav>
 
@@ -604,6 +736,55 @@
     </div>
   </div>
 
+  <!-- SET / EDIT CATEGORY BUDGET MODAL (FEATURE 1) -->
+  <div id="budgetModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-5 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+            <i data-lucide="target" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 id="budgetModalTitle" class="font-bold text-white text-base">Set Category Budget</h3>
+            <p class="text-xs text-slate-400">Configures monthly spending limit in Supabase</p>
+          </div>
+        </div>
+        <button onclick="closeBudgetModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="budgetForm" class="space-y-4 text-xs">
+        <input type="hidden" id="editBudgetId" value="">
+
+        <div>
+          <label for="budgetCategoryInput" class="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[10px]">Expense Category</label>
+          <input type="text" id="budgetCategoryInput" required placeholder="e.g. Groceries, Dining, Rent" class="w-full bg-slate-800 text-white rounded-xl p-2.5 border border-slate-700 outline-none focus:border-emerald-500 text-sm">
+          <div id="budgetQuickPills" class="flex flex-wrap gap-1.5 mt-2">
+            <!-- Quick preset category pills -->
+          </div>
+        </div>
+
+        <div>
+          <label for="budgetLimitInput" class="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[10px]">Monthly Limit in INR (₹)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-base font-bold text-slate-400">₹</span>
+            <input type="number" step="100" id="budgetLimitInput" required placeholder="e.g. 10000" class="w-full bg-slate-800 text-white font-bold text-base rounded-xl pl-8 pr-3.5 py-2.5 border border-slate-700 outline-none focus:border-emerald-500">
+          </div>
+        </div>
+
+        <div class="pt-2 flex gap-2">
+          <button type="submit" class="flex-1 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 transition">
+            Save Budget Limit
+          </button>
+          <button type="button" onclick="closeBudgetModal()" class="px-4 py-2.5 bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- SETTINGS MODAL -->
   <div id="settingsModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-5 space-y-4">
@@ -657,9 +838,10 @@
 
     // --- APPLICATION STATE ---
     let allTransactions = [];
+    let allBudgets = [];
     let currentMonth = new Date().toISOString().substring(0, 7); // "YYYY-MM"
     let currentYear = new Date().getFullYear().toString(); // "YYYY"
-    let activePage = 'monthly'; // 'monthly', 'yearly', 'weekly', 'transactions'
+    let activePage = 'monthly'; // 'monthly', 'yearly', 'budgets', 'weekly', 'transactions'
     let monthlyPieMode = 'Expenses'; // 'Income', 'Expenses', 'Dual'
     let yearlyPieMode = 'Expenses'; // 'Income', 'Expenses', 'Dual'
 
@@ -730,15 +912,31 @@
     }
 
     // --- SUPABASE DATA FETCHING ---
-    async function loadTransactions() {
+    async function loadBudgets() {
       try {
         const { data, error } = await supabaseClient
-          .from('finance_transactions')
+          .from('finance_budgets')
           .select('*')
-          .order('transaction_date', { ascending: false });
+          .order('category', { ascending: true });
 
         if (error) throw error;
-        allTransactions = data || [];
+        allBudgets = data || [];
+      } catch (err) {
+        console.warn('Failed to load budgets from Supabase:', err);
+      }
+    }
+
+    async function loadTransactions() {
+      try {
+        const [txRes, bgtRes] = await Promise.all([
+          supabaseClient.from('finance_transactions').select('*').order('transaction_date', { ascending: false }),
+          supabaseClient.from('finance_budgets').select('*').order('category', { ascending: true })
+        ]);
+
+        if (txRes.error) throw txRes.error;
+        allTransactions = txRes.data || [];
+        allBudgets = bgtRes.data || [];
+
         populateSelectors();
         renderActivePage();
       } catch (err) {
@@ -808,31 +1006,37 @@
       // Update button classes
       const navButtons = {
         monthly: document.getElementById('navMonthly'),
+        budgets: document.getElementById('navBudgets'),
         yearly: document.getElementById('navYearly'),
         weekly: document.getElementById('navWeekly'),
         transactions: document.getElementById('navTransactions')
       };
 
       Object.keys(navButtons).forEach(key => {
-        if (key === page) {
-          navButtons[key].className = 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md tab-active transition whitespace-nowrap';
-        } else {
-          navButtons[key].className = 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition whitespace-nowrap';
+        if (navButtons[key]) {
+          if (key === page) {
+            navButtons[key].className = 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md tab-active transition whitespace-nowrap';
+          } else {
+            navButtons[key].className = 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition whitespace-nowrap';
+          }
         }
       });
 
       // Update mobile bottom nav highlights
       const mMonthly = document.getElementById('mobileNavMonthly');
       const mYearly = document.getElementById('mobileNavYearly');
+      const mBudgets = document.getElementById('mobileNavBudgets');
       const mEntries = document.getElementById('mobileNavEntries');
 
-      mMonthly.className = page === 'monthly' ? 'flex flex-col items-center text-indigo-400' : 'flex flex-col items-center text-slate-400 hover:text-white transition';
-      mYearly.className = page === 'yearly' ? 'flex flex-col items-center text-amber-400' : 'flex flex-col items-center text-slate-400 hover:text-amber-400 transition';
-      mEntries.className = page === 'transactions' ? 'flex flex-col items-center text-indigo-400' : 'flex flex-col items-center text-slate-400 hover:text-white transition';
+      if (mMonthly) mMonthly.className = page === 'monthly' ? 'flex flex-col items-center text-indigo-400' : 'flex flex-col items-center text-slate-400 hover:text-white transition';
+      if (mYearly) mYearly.className = page === 'yearly' ? 'flex flex-col items-center text-amber-400' : 'flex flex-col items-center text-slate-400 hover:text-amber-400 transition';
+      if (mBudgets) mBudgets.className = page === 'budgets' ? 'flex flex-col items-center text-emerald-400' : 'flex flex-col items-center text-slate-400 hover:text-emerald-400 transition';
+      if (mEntries) mEntries.className = page === 'transactions' ? 'flex flex-col items-center text-indigo-400' : 'flex flex-col items-center text-slate-400 hover:text-white transition';
 
       // Visibility of Containers
       const pageMonthly = document.getElementById('pageMonthly');
       const pageYearly = document.getElementById('pageYearly');
+      const pageBudgets = document.getElementById('pageBudgets');
       const weeklySection = document.getElementById('weeklySection');
       const transactionsSection = document.getElementById('transactionsSection');
 
@@ -844,6 +1048,7 @@
       if (page === 'monthly') {
         pageMonthly.classList.remove('hidden');
         pageYearly.classList.add('hidden');
+        pageBudgets.classList.add('hidden');
         weeklySection.classList.remove('hidden');
         transactionsSection.classList.remove('hidden');
 
@@ -856,6 +1061,7 @@
       } else if (page === 'yearly') {
         pageMonthly.classList.add('hidden');
         pageYearly.classList.remove('hidden');
+        pageBudgets.classList.add('hidden');
         weeklySection.classList.add('hidden');
         transactionsSection.classList.remove('hidden'); // Transactions still visible below yearly
 
@@ -865,9 +1071,23 @@
         yearlyFiltersSubbar.classList.remove('hidden');
 
         renderYearlyAnalytics();
+      } else if (page === 'budgets') {
+        pageMonthly.classList.add('hidden');
+        pageYearly.classList.add('hidden');
+        pageBudgets.classList.remove('hidden');
+        weeklySection.classList.add('hidden');
+        transactionsSection.classList.add('hidden');
+
+        headerMonthSel.classList.remove('hidden');
+        headerYearSel.classList.add('hidden');
+        monthlyFiltersSubbar.classList.add('hidden');
+        yearlyFiltersSubbar.classList.add('hidden');
+
+        renderBudgetsPage();
       } else if (page === 'weekly') {
         pageMonthly.classList.remove('hidden');
         pageYearly.classList.add('hidden');
+        pageBudgets.classList.add('hidden');
         weeklySection.classList.remove('hidden');
         transactionsSection.classList.add('hidden');
 
@@ -881,6 +1101,7 @@
       } else if (page === 'transactions') {
         pageMonthly.classList.remove('hidden');
         pageYearly.classList.add('hidden');
+        pageBudgets.classList.add('hidden');
         weeklySection.classList.add('hidden');
         transactionsSection.classList.remove('hidden');
 
@@ -899,6 +1120,8 @@
     function renderActivePage() {
       if (activePage === 'yearly') {
         renderYearlyAnalytics();
+      } else if (activePage === 'budgets') {
+        renderBudgetsPage();
       } else {
         renderMonthlyDashboard();
       }
@@ -977,6 +1200,10 @@
 
       document.getElementById('savingsRate').innerText = `${savingsRate}%`;
 
+      // Feature 1: Update Monthly Budget Health & Alert Banner
+      const budgetStats = getMonthlyBudgetStats(currentMonth);
+      updateMonthlyBudgetBanner(budgetStats);
+
       // Render Charts
       renderLineChart(monthTx);
       renderMonthlyPieChart(monthTx);
@@ -984,6 +1211,255 @@
 
       // Render Transactions List
       renderTransactionsList();
+      lucide.createIcons();
+    }
+
+    // =========================================================================
+    // FEATURE 1: BUDGET CALCULATIONS & RENDER LOGIC
+    // =========================================================================
+    function getMonthlyBudgetStats(monthStr = currentMonth) {
+      const [yStr, mStr] = monthStr.split('-');
+      const year = parseInt(yStr, 10);
+      const month = parseInt(mStr, 10);
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const today = new Date();
+      let currentDay = 1;
+
+      if (today.getFullYear() === year && (today.getMonth() + 1) === month) {
+        currentDay = today.getDate();
+      } else if (today.getFullYear() > year || (today.getFullYear() === year && (today.getMonth() + 1) > month)) {
+        currentDay = daysInMonth;
+      }
+      const daysRemaining = Math.max(daysInMonth - currentDay + 1, 1);
+
+      // Filter expenses for this specific month
+      const monthExpTx = allTransactions.filter(t => t.transaction_date && t.transaction_date.startsWith(monthStr) && !t.is_income);
+
+      // Group spending by category (case-insensitive key matching)
+      const spentMap = {};
+      monthExpTx.forEach(t => {
+        const rawCat = (t.category || 'Other').trim();
+        const key = rawCat.toLowerCase();
+        spentMap[key] = (spentMap[key] || 0) + (parseFloat(t.amount) || 0);
+      });
+
+      let totalLimit = 0;
+      let totalSpent = 0;
+      const overBudgetItems = [];
+      const nearLimitItems = [];
+
+      const categoryCards = allBudgets.map(b => {
+        const cat = b.category;
+        const limit = parseFloat(b.monthly_limit) || 0;
+        const spent = spentMap[cat.toLowerCase()] || 0;
+        totalLimit += limit;
+        totalSpent += spent;
+        const pct = limit > 0 ? (spent / limit) * 100 : 0;
+        const remaining = limit - spent;
+
+        const item = {
+          id: b.id,
+          category: cat,
+          limit: limit,
+          spent: spent,
+          remaining: remaining,
+          pct: pct,
+          isOver: spent > limit,
+          isNear: pct >= 80 && spent <= limit
+        };
+
+        if (item.isOver) overBudgetItems.push(item);
+        else if (item.isNear) nearLimitItems.push(item);
+
+        return item;
+      });
+
+      const remainingBudget = Math.max(0, totalLimit - totalSpent);
+      const safeDaily = remainingBudget / daysRemaining;
+
+      return {
+        daysInMonth,
+        currentDay,
+        daysRemaining,
+        totalLimit,
+        totalSpent,
+        remainingBudget,
+        safeDaily,
+        overBudgetItems,
+        nearLimitItems,
+        categoryCards
+      };
+    }
+
+    function updateMonthlyBudgetBanner(stats) {
+      const banner = document.getElementById('monthlyBudgetAlertBanner');
+      const iconBox = document.getElementById('monthlyBudgetStatusIcon');
+      const headline = document.getElementById('monthlyBudgetHeadline');
+      const badge = document.getElementById('monthlyBudgetPercentBadge');
+      const subtext = document.getElementById('monthlyBudgetSubtext');
+      const navBadge = document.getElementById('budgetAlertBadge');
+
+      if (!stats || stats.categoryCards.length === 0) {
+        if (navBadge) navBadge.classList.add('hidden');
+        banner.className = 'bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md';
+        iconBox.className = 'w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center flex-shrink-0';
+        iconBox.innerHTML = '<i data-lucide="target" class="w-5 h-5"></i>';
+        headline.innerText = 'Smart Budgets Active';
+        badge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono';
+        badge.innerText = 'No Budgets Configured';
+        subtext.innerText = 'Set category limits to activate overspending alerts and daily safe-to-spend tracking.';
+        lucide.createIcons();
+        return;
+      }
+
+      const overallPct = stats.totalLimit > 0 ? Math.round((stats.totalSpent / stats.totalLimit) * 100) : 0;
+
+      if (stats.overBudgetItems.length > 0) {
+        if (navBadge) {
+          navBadge.innerText = `${stats.overBudgetItems.length}`;
+          navBadge.classList.remove('hidden');
+        }
+        banner.className = 'bg-gradient-to-r from-rose-950/40 via-slate-900 to-rose-950/20 border border-rose-500/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md';
+        iconBox.className = 'w-10 h-10 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center flex-shrink-0';
+        iconBox.innerHTML = '<i data-lucide="alert-triangle" class="w-5 h-5"></i>';
+        headline.innerText = `Overspending Alert: ${stats.overBudgetItems.length} Category ${stats.overBudgetItems.length > 1 ? 'Limits' : 'Limit'} Exceeded!`;
+        badge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-mono';
+        badge.innerText = `${overallPct}% spent`;
+        const overList = stats.overBudgetItems.map(i => `${i.category} (+${formatINR(i.spent - i.limit, false)})`).join(', ');
+        subtext.innerText = `Over budget on: ${overList}. Safe daily spend is adjusted to ${formatINR(stats.safeDaily, false)}/day.`;
+      } else if (stats.nearLimitItems.length > 0) {
+        if (navBadge) navBadge.classList.add('hidden');
+        banner.className = 'bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/20 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md';
+        iconBox.className = 'w-10 h-10 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center flex-shrink-0';
+        iconBox.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5"></i>';
+        headline.innerText = `Budget Warning: ${stats.nearLimitItems.length} Category nearing monthly cap`;
+        badge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono';
+        badge.innerText = `${overallPct}% spent`;
+        const nearList = stats.nearLimitItems.map(i => `${i.category} (${Math.round(i.pct)}%)`).join(', ');
+        subtext.innerText = `Watch out: ${nearList}. You have ${formatINR(stats.remainingBudget, false)} remaining (${formatINR(stats.safeDaily, false)}/day).`;
+      } else {
+        if (navBadge) navBadge.classList.add('hidden');
+        banner.className = 'bg-gradient-to-r from-emerald-950/30 via-slate-900 to-indigo-950/30 border border-emerald-500/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md';
+        iconBox.className = 'w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center flex-shrink-0';
+        iconBox.innerHTML = '<i data-lucide="shield-check" class="w-5 h-5"></i>';
+        headline.innerText = 'Monthly Budgets on Track';
+        badge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono';
+        badge.innerText = `${overallPct}% used`;
+        subtext.innerText = `You can safely spend ${formatINR(stats.safeDaily, false)} / day over the remaining ${stats.daysRemaining} days.`;
+      }
+      lucide.createIcons();
+    }
+
+    function renderBudgetsPage() {
+      const stats = getMonthlyBudgetStats(currentMonth);
+
+      document.getElementById('budgetTotalAllocated').innerText = formatINR(stats.totalLimit, false);
+      document.getElementById('budgetCategoriesCount').innerText = `${stats.categoryCards.length} categories tracked`;
+
+      document.getElementById('budgetTotalSpent').innerText = formatINR(stats.totalSpent, false);
+      const overallPct = stats.totalLimit > 0 ? Math.round((stats.totalSpent / stats.totalLimit) * 100) : 0;
+      document.getElementById('budgetSpentPercent').innerText = `${overallPct}% utilized`;
+
+      const diff = stats.totalLimit - stats.totalSpent;
+      document.getElementById('budgetRemainingOverall').innerText = diff >= 0 
+        ? `${formatINR(diff, false)} left` 
+        : `${formatINR(Math.abs(diff), false)} overspent`;
+
+      document.getElementById('budgetSafeToSpendDaily').innerText = `${formatINR(stats.safeDaily, false)} / day`;
+      const [y, m] = currentMonth.split('-');
+      const monthName = MONTH_NAMES[parseInt(m, 10) - 1] || '';
+      document.getElementById('budgetDaysRemainingText').innerText = `${stats.daysRemaining} days left in ${monthName}`;
+
+      const badgeEl = document.getElementById('budgetsBadgeAlertCount');
+      if (stats.overBudgetItems.length > 0) {
+        badgeEl.innerText = `${stats.overBudgetItems.length} Over Budget`;
+        badgeEl.className = 'text-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded-full font-bold';
+        badgeEl.classList.remove('hidden');
+      } else {
+        badgeEl.classList.add('hidden');
+      }
+
+      // Render Category Cards Grid
+      const grid = document.getElementById('budgetsGrid');
+      if (stats.categoryCards.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-12 text-center text-slate-400 space-y-3">
+            <i data-lucide="target" class="w-10 h-10 text-slate-500 mx-auto"></i>
+            <p class="text-sm">No category budgets defined yet.</p>
+            <button onclick="openBudgetModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition">
+              + Set Your First Category Budget
+            </button>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      grid.innerHTML = stats.categoryCards.map(item => {
+        const pct = item.pct;
+        const barWidth = Math.min(Math.round(pct), 100);
+
+        let statusBadge = '';
+        let barColor = '';
+        let borderColor = 'border-slate-800';
+
+        if (item.isOver) {
+          statusBadge = `<span class="bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full">Over by ${formatINR(item.spent - item.limit, false)}</span>`;
+          barColor = 'bg-rose-500';
+          borderColor = 'border-rose-500/30';
+        } else if (item.isNear) {
+          statusBadge = `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full">${Math.round(pct)}% used (${formatINR(item.remaining, false)} left)</span>`;
+          barColor = 'bg-amber-500';
+          borderColor = 'border-amber-500/30';
+        } else {
+          statusBadge = `<span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full">${Math.round(pct)}% used (${formatINR(item.remaining, false)} left)</span>`;
+          barColor = 'bg-emerald-500';
+        }
+
+        const safeCat = escapeHtml(item.category);
+
+        return `
+          <div class="bg-slate-800/80 hover:bg-slate-800 border ${borderColor} rounded-2xl p-4 transition-all duration-200 flex flex-col justify-between gap-3 shadow-lg">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <h4 class="font-bold text-white text-base">${safeCat}</h4>
+                  <p class="text-xs text-slate-400 mt-0.5">Monthly Limit: <span class="font-bold text-slate-200">${formatINR(item.limit, false)}</span></p>
+                </div>
+                ${statusBadge}
+              </div>
+
+              <!-- Progress Bar -->
+              <div class="space-y-1.5 mt-3">
+                <div class="flex justify-between text-xs">
+                  <span class="text-slate-400">Spent: <strong class="text-white">${formatINR(item.spent, false)}</strong></span>
+                  <span class="font-mono text-slate-400">${Math.round(pct)}%</span>
+                </div>
+                <div class="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-700/50 p-0.5">
+                  <div class="h-full rounded-full ${barColor} transition-all duration-500" style="width: ${barWidth}%"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between text-xs">
+              <span class="text-[11px] text-slate-400 font-mono">
+                ${item.remaining >= 0 ? `${formatINR(item.remaining, false)} remaining` : `Exceeded by ${formatINR(Math.abs(item.remaining), false)}`}
+              </span>
+              <div class="flex items-center gap-1.5">
+                <button onclick="openBudgetModal('${safeCat}', ${item.limit}, '${item.id}')" class="px-2.5 py-1 text-slate-300 hover:text-white bg-slate-700/60 hover:bg-slate-700 rounded-lg transition font-medium flex items-center gap-1">
+                  <i data-lucide="edit-3" class="w-3.5 h-3.5 text-indigo-400"></i>
+                  Edit
+                </button>
+                <button onclick="deleteBudget('${item.id}', '${safeCat}')" class="p-1 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition" title="Delete Budget">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
       lucide.createIcons();
     }
 
@@ -1710,6 +2186,96 @@
       } catch (err) {
         console.error('Delete failed:', err);
         showToast(`Delete failed: ${err.message}`, true);
+      }
+    }
+
+    // --- FEATURE 1: BUDGET MODAL CONTROLS & CRUD ---
+    function openBudgetModal(cat = '', limit = '', id = '') {
+      document.getElementById('editBudgetId').value = id || '';
+      document.getElementById('budgetCategoryInput').value = cat || '';
+      document.getElementById('budgetLimitInput').value = limit || '';
+      document.getElementById('budgetModalTitle').innerText = id ? 'Edit Category Budget' : 'Set Category Budget';
+      
+      renderBudgetQuickPills();
+      document.getElementById('budgetModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeBudgetModal() {
+      document.getElementById('budgetModal').classList.add('hidden');
+    }
+
+    function renderBudgetQuickPills() {
+      const container = document.getElementById('budgetQuickPills');
+      if (!container) return;
+      container.innerHTML = EXPENSE_CATEGORIES.map(cat => `
+        <button type="button" onclick="selectBudgetCategory('${cat}')" class="px-2 py-0.5 text-[11px] rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700 transition">
+          ${cat}
+        </button>
+      `).join('');
+    }
+
+    function selectBudgetCategory(cat) {
+      document.getElementById('budgetCategoryInput').value = cat;
+    }
+
+    document.getElementById('budgetForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('editBudgetId').value.trim();
+      const category = document.getElementById('budgetCategoryInput').value.trim();
+      const limit = parseFloat(document.getElementById('budgetLimitInput').value);
+
+      if (!category) {
+        showToast('Please enter or select a category', true);
+        return;
+      }
+      if (!limit || limit <= 0) {
+        showToast('Please enter a valid monthly limit in ₹', true);
+        return;
+      }
+
+      try {
+        const payload = {
+          category: category,
+          monthly_limit: limit
+        };
+        if (id) {
+          payload.id = id;
+        }
+
+        const { error } = await supabaseClient
+          .from('finance_budgets')
+          .upsert(payload, { onConflict: 'category' });
+
+        if (error) throw error;
+
+        closeBudgetModal();
+        showToast(`Budget for ${category} set to ${formatINR(limit, false)}!`);
+        await loadBudgets();
+        renderActivePage();
+      } catch (err) {
+        console.error('Failed to save budget:', err);
+        showToast(`Failed to save budget: ${err.message}`, true);
+      }
+    });
+
+    async function deleteBudget(id, category) {
+      if (!confirm(`Are you sure you want to remove the monthly budget limit for "${category}"?`)) return;
+
+      try {
+        const { error } = await supabaseClient
+          .from('finance_budgets')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+
+        showToast(`Budget for ${category} removed`);
+        await loadBudgets();
+        renderActivePage();
+      } catch (err) {
+        console.error('Failed to delete budget:', err);
+        showToast(`Failed to delete: ${err.message}`, true);
       }
     }
 
