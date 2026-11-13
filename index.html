@@ -128,6 +128,11 @@
           <span>Budgets & Limits</span>
           <span id="budgetAlertBadge" class="hidden bg-rose-500/20 text-rose-300 text-[10px] px-1.5 py-0.2 rounded-full border border-rose-500/30 font-bold">!</span>
         </button>
+        <button id="navSubscriptions" onclick="switchPage('subscriptions')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition whitespace-nowrap">
+          <i data-lucide="repeat" class="w-3.5 h-3.5 text-violet-400"></i>
+          <span>Recurring & EMIs</span>
+          <span id="subscriptionsDueBadge" class="hidden bg-amber-500/20 text-amber-300 text-[10px] px-1.5 py-0.2 rounded-full border border-amber-500/30 font-bold">0 Due</span>
+        </button>
         <button id="navYearly" onclick="switchPage('yearly')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition whitespace-nowrap">
           <i data-lucide="calendar-range" class="w-3.5 h-3.5 text-amber-400"></i>
           <span>Yearly Analytics</span>
@@ -250,6 +255,33 @@
             <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
             Manage Budgets
           </button>
+        </div>
+      </div>
+
+      <!-- Feature 2: Upcoming Dues & EMI Tracker Quick-Bar -->
+      <div id="monthlyUpcomingDuesCard" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 rounded-xl bg-violet-500/10 text-violet-400">
+              <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="font-bold text-sm sm:text-base text-white">Upcoming Subscriptions & EMIs</h3>
+                <span id="monthlyDuesCountBadge" class="text-xs bg-violet-500/15 text-violet-300 border border-violet-500/30 px-2 py-0.5 rounded-full font-bold">0 Pending</span>
+              </div>
+              <p class="text-xs text-slate-400">Recurring payments due this month • One-tap "Mark as Paid" logs expense instantly</p>
+            </div>
+          </div>
+          <button onclick="switchPage('subscriptions')" class="text-xs text-violet-400 hover:text-violet-300 font-semibold flex items-center gap-1 transition">
+            <span>Manage All</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Dues Dynamic Scroller / Grid -->
+        <div id="monthlyUpcomingDuesList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          <div class="text-center py-6 text-slate-500 text-xs col-span-full">Loading upcoming dues...</div>
         </div>
       </div>
 
@@ -577,6 +609,113 @@
         </div>
       </div>
     </div>
+
+    <!-- ================================================================= -->
+    <!-- PAGE 4: DEDICATED RECURRING EXPENSES & EMI TRACKER VIEW (FEATURE 2) -->
+    <!-- ================================================================= -->
+    <div id="pageSubscriptions" class="hidden space-y-5">
+      <!-- Header Banner with Add Subscription CTA -->
+      <div class="bg-gradient-to-r from-violet-500/10 via-slate-900 to-indigo-500/10 border border-violet-500/20 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-600 to-purple-800 text-white flex items-center justify-center shadow-lg shadow-violet-600/20 flex-shrink-0">
+            <i data-lucide="repeat" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">Recurring Expenses & EMIs</h2>
+              <span class="text-xs bg-violet-400/20 text-violet-300 font-bold px-2 py-0.5 rounded-full border border-violet-400/30 font-mono">Auto Tracker</span>
+            </div>
+            <p class="text-xs text-slate-400">Track subscriptions, loan EMIs, rent, utilities, and mark dues as paid in one click</p>
+          </div>
+        </div>
+
+        <button onclick="openSubscriptionModal()" class="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-lg shadow-violet-600/25 flex items-center gap-2 transition self-start sm:self-auto">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Add Subscription / EMI</span>
+        </button>
+      </div>
+
+      <!-- 3 KPI Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <!-- 1. Total Monthly Recurring Commitments -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800/95 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-xl shadow-violet-500/5">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-violet-500"></div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Monthly Recurring Total</p>
+              <h3 id="subTotalMonthly" class="text-2xl sm:text-3xl font-black text-violet-400 mt-1 tracking-tight">₹0</h3>
+            </div>
+            <div class="p-2.5 bg-violet-500/10 rounded-xl text-violet-400">
+              <i data-lucide="badge-dollar-sign" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span id="subTotalAnnual" class="font-semibold text-slate-300">₹0 / year committed</span>
+            <span class="text-slate-500">Fixed Cost</span>
+          </div>
+        </div>
+
+        <!-- 2. Paid This Month vs Pending -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800/95 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-xl shadow-emerald-500/5">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-emerald-500"></div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Paid This Month</p>
+              <h3 id="subPaidThisMonth" class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1 tracking-tight">₹0</h3>
+            </div>
+            <div class="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-400">
+              <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span id="subPaidCountText" class="font-semibold text-emerald-400">0 of 0 paid</span>
+            <span id="subRemainingDueText" class="text-slate-400 font-mono">₹0 pending</span>
+          </div>
+        </div>
+
+        <!-- 3. Next Upcoming Due -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800/95 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-xl shadow-amber-500/5">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-amber-500"></div>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-[11px] font-bold tracking-wider text-amber-400 uppercase">Next Due Payment</p>
+              <h3 id="subNextDueName" class="text-lg sm:text-xl font-black text-white mt-1 tracking-tight truncate max-w-[200px]">None Pending</h3>
+            </div>
+            <div class="p-2.5 bg-amber-500/10 rounded-xl text-amber-400">
+              <i data-lucide="clock" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span id="subNextDueCountdown" class="font-semibold text-amber-300">All caught up</span>
+            <span id="subNextDueAmount" class="font-mono text-slate-300">₹0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subscriptions Grid -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div>
+            <h3 class="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+              <span>All Active Subscriptions & EMIs</span>
+              <span id="subscriptionsBadgeTotal" class="text-xs bg-violet-500/20 text-violet-300 border border-violet-500/30 px-2 py-0.5 rounded-full font-bold">0 Active</span>
+            </h3>
+            <p class="text-xs text-slate-400">Click "Mark as Paid" to log expense and update your monthly budget automatically</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openSubscriptionModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
+              <i data-lucide="plus" class="w-3.5 h-3.5 text-violet-400"></i>
+              Add New
+            </button>
+          </div>
+        </div>
+
+        <!-- Subscriptions Cards Container -->
+        <div id="subscriptionsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          <div class="text-center py-12 text-slate-500 col-span-full">Loading subscriptions & EMIs...</div>
+        </div>
+      </div>
+    </div>
     <!-- ================================================================= -->
     <div id="weeklySection" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5">
       <div class="flex items-center justify-between mb-3">
@@ -629,20 +768,20 @@
       <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
       <span class="text-[9px] font-bold mt-1">Monthly</span>
     </button>
-    <button id="mobileNavYearly" onclick="switchPage('yearly')" class="flex flex-col items-center text-slate-400 hover:text-amber-400 transition">
-      <i data-lucide="calendar-range" class="w-5 h-5"></i>
-      <span class="text-[9px] font-bold mt-1">Yearly</span>
-    </button>
-    <button onclick="openModal()" class="w-11 h-11 -mt-4 rounded-full bg-gradient-to-tr from-indigo-600 to-emerald-400 text-white flex items-center justify-center shadow-lg shadow-indigo-500/40">
-      <i data-lucide="plus" class="w-5 h-5 stroke-[2.5]"></i>
-    </button>
     <button id="mobileNavBudgets" onclick="switchPage('budgets')" class="flex flex-col items-center text-slate-400 hover:text-emerald-400 transition">
       <i data-lucide="target" class="w-5 h-5"></i>
       <span class="text-[9px] font-bold mt-1">Budgets</span>
     </button>
-    <button id="mobileNavEntries" onclick="switchPage('transactions')" class="flex flex-col items-center text-slate-400 hover:text-white transition">
-      <i data-lucide="receipt" class="w-5 h-5"></i>
-      <span class="text-[9px] font-bold mt-1">Entries</span>
+    <button onclick="openModal()" class="w-11 h-11 -mt-4 rounded-full bg-gradient-to-tr from-indigo-600 to-emerald-400 text-white flex items-center justify-center shadow-lg shadow-indigo-500/40">
+      <i data-lucide="plus" class="w-5 h-5 stroke-[2.5]"></i>
+    </button>
+    <button id="mobileNavSubscriptions" onclick="switchPage('subscriptions')" class="flex flex-col items-center text-slate-400 hover:text-violet-400 transition">
+      <i data-lucide="repeat" class="w-5 h-5"></i>
+      <span class="text-[9px] font-bold mt-1">Recurring</span>
+    </button>
+    <button id="mobileNavYearly" onclick="switchPage('yearly')" class="flex flex-col items-center text-slate-400 hover:text-amber-400 transition">
+      <i data-lucide="calendar-range" class="w-5 h-5"></i>
+      <span class="text-[9px] font-bold mt-1">Yearly</span>
     </button>
   </nav>
 
@@ -785,6 +924,90 @@
     </div>
   </div>
 
+  <!-- ADD / EDIT SUBSCRIPTION & EMI MODAL (FEATURE 2) -->
+  <div id="subscriptionModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-5 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <div class="p-2 rounded-xl bg-violet-500/10 text-violet-400">
+            <i data-lucide="repeat" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 id="subscriptionModalTitle" class="font-bold text-white text-base">Add Subscription / EMI</h3>
+            <p class="text-xs text-slate-400">Track recurring expenses and upcoming payment dues</p>
+          </div>
+        </div>
+        <button onclick="closeSubscriptionModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="subscriptionForm" class="space-y-4 text-xs">
+        <input type="hidden" id="editSubId" value="">
+
+        <div>
+          <label for="subNameInput" class="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[10px]">Name / Service</label>
+          <input type="text" id="subNameInput" required placeholder="e.g. Netflix 4K, Car Loan EMI, Gym, Wifi" class="w-full bg-slate-800 text-white rounded-xl p-2.5 border border-slate-700 outline-none focus:border-violet-500 text-sm">
+          <div id="subQuickPills" class="flex flex-wrap gap-1.5 mt-2">
+            <!-- Preset Pills -->
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="subAmountInput" class="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[10px]">Amount (₹ INR)</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">₹</span>
+              <input type="number" step="0.01" id="subAmountInput" required placeholder="0.00" class="w-full bg-slate-800 text-white font-bold text-sm rounded-xl pl-7 pr-3 py-2.5 border border-slate-700 outline-none focus:border-violet-500">
+            </div>
+          </div>
+          <div>
+            <label for="subCycleInput" class="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[10px]">Billing Cycle</label>
+            <select id="subCycleInput" class="w-full bg-slate-800 text-white font-semibold text-xs rounded-xl p-2.5 border border-slate-700 outline-none focus:border-violet-500">
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="subDueDayInput" class="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[10px]">Due Day of Month</label>
+            <input type="number" min="1" max="31" id="subDueDayInput" required placeholder="1 to 31" class="w-full bg-slate-800 text-white font-bold text-sm rounded-xl p-2.5 border border-slate-700 outline-none focus:border-violet-500">
+          </div>
+          <div>
+            <label for="subCategoryInput" class="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[10px]">Category</label>
+            <select id="subCategoryInput" class="w-full bg-slate-800 text-white font-semibold text-xs rounded-xl p-2.5 border border-slate-700 outline-none focus:border-violet-500">
+              <option value="Entertainment">Entertainment</option>
+              <option value="EMI / Loans">EMI / Loans</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Gym">Gym / Fitness</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Rent">Rent</option>
+              <option value="Tech">Tech / Cloud</option>
+              <option value="Subscriptions">Other Subscriptions</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="subNotesInput" class="block text-slate-400 font-semibold mb-1 uppercase tracking-wider text-[10px]">Payment Account / Notes (Optional)</label>
+          <input type="text" id="subNotesInput" placeholder="e.g. HDFC Credit Card auto-debit, Salary Account" class="w-full bg-slate-800 text-white rounded-xl p-2.5 border border-slate-700 outline-none focus:border-violet-500 text-xs">
+        </div>
+
+        <div class="pt-2 flex gap-2">
+          <button type="submit" class="flex-1 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-violet-600/30 transition">
+            Save Subscription
+          </button>
+          <button type="button" onclick="closeSubscriptionModal()" class="px-4 py-2.5 bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- SETTINGS MODAL -->
   <div id="settingsModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-5 space-y-4">
@@ -839,9 +1062,10 @@
     // --- APPLICATION STATE ---
     let allTransactions = [];
     let allBudgets = [];
+    let allSubscriptions = [];
     let currentMonth = new Date().toISOString().substring(0, 7); // "YYYY-MM"
     let currentYear = new Date().getFullYear().toString(); // "YYYY"
-    let activePage = 'monthly'; // 'monthly', 'yearly', 'budgets', 'weekly', 'transactions'
+    let activePage = 'monthly'; // 'monthly', 'yearly', 'budgets', 'subscriptions', 'weekly', 'transactions'
     let monthlyPieMode = 'Expenses'; // 'Income', 'Expenses', 'Dual'
     let yearlyPieMode = 'Expenses'; // 'Income', 'Expenses', 'Dual'
 
@@ -926,16 +1150,32 @@
       }
     }
 
+    async function loadSubscriptions() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('finance_subscriptions')
+          .select('*')
+          .order('due_day', { ascending: true });
+
+        if (error) throw error;
+        allSubscriptions = data || [];
+      } catch (err) {
+        console.warn('Failed to load subscriptions from Supabase:', err);
+      }
+    }
+
     async function loadTransactions() {
       try {
-        const [txRes, bgtRes] = await Promise.all([
+        const [txRes, bgtRes, subRes] = await Promise.all([
           supabaseClient.from('finance_transactions').select('*').order('transaction_date', { ascending: false }),
-          supabaseClient.from('finance_budgets').select('*').order('category', { ascending: true })
+          supabaseClient.from('finance_budgets').select('*').order('category', { ascending: true }),
+          supabaseClient.from('finance_subscriptions').select('*').order('due_day', { ascending: true })
         ]);
 
         if (txRes.error) throw txRes.error;
         allTransactions = txRes.data || [];
         allBudgets = bgtRes.data || [];
+        allSubscriptions = subRes.data || [];
 
         populateSelectors();
         renderActivePage();
@@ -1007,6 +1247,7 @@
       const navButtons = {
         monthly: document.getElementById('navMonthly'),
         budgets: document.getElementById('navBudgets'),
+        subscriptions: document.getElementById('navSubscriptions'),
         yearly: document.getElementById('navYearly'),
         weekly: document.getElementById('navWeekly'),
         transactions: document.getElementById('navTransactions')
@@ -1024,19 +1265,20 @@
 
       // Update mobile bottom nav highlights
       const mMonthly = document.getElementById('mobileNavMonthly');
-      const mYearly = document.getElementById('mobileNavYearly');
       const mBudgets = document.getElementById('mobileNavBudgets');
-      const mEntries = document.getElementById('mobileNavEntries');
+      const mSubscriptions = document.getElementById('mobileNavSubscriptions');
+      const mYearly = document.getElementById('mobileNavYearly');
 
       if (mMonthly) mMonthly.className = page === 'monthly' ? 'flex flex-col items-center text-indigo-400' : 'flex flex-col items-center text-slate-400 hover:text-white transition';
-      if (mYearly) mYearly.className = page === 'yearly' ? 'flex flex-col items-center text-amber-400' : 'flex flex-col items-center text-slate-400 hover:text-amber-400 transition';
       if (mBudgets) mBudgets.className = page === 'budgets' ? 'flex flex-col items-center text-emerald-400' : 'flex flex-col items-center text-slate-400 hover:text-emerald-400 transition';
-      if (mEntries) mEntries.className = page === 'transactions' ? 'flex flex-col items-center text-indigo-400' : 'flex flex-col items-center text-slate-400 hover:text-white transition';
+      if (mSubscriptions) mSubscriptions.className = page === 'subscriptions' ? 'flex flex-col items-center text-violet-400' : 'flex flex-col items-center text-slate-400 hover:text-violet-400 transition';
+      if (mYearly) mYearly.className = page === 'yearly' ? 'flex flex-col items-center text-amber-400' : 'flex flex-col items-center text-slate-400 hover:text-amber-400 transition';
 
       // Visibility of Containers
       const pageMonthly = document.getElementById('pageMonthly');
       const pageYearly = document.getElementById('pageYearly');
       const pageBudgets = document.getElementById('pageBudgets');
+      const pageSubscriptions = document.getElementById('pageSubscriptions');
       const weeklySection = document.getElementById('weeklySection');
       const transactionsSection = document.getElementById('transactionsSection');
 
@@ -1049,6 +1291,7 @@
         pageMonthly.classList.remove('hidden');
         pageYearly.classList.add('hidden');
         pageBudgets.classList.add('hidden');
+        pageSubscriptions.classList.add('hidden');
         weeklySection.classList.remove('hidden');
         transactionsSection.classList.remove('hidden');
 
@@ -1062,6 +1305,7 @@
         pageMonthly.classList.add('hidden');
         pageYearly.classList.remove('hidden');
         pageBudgets.classList.add('hidden');
+        pageSubscriptions.classList.add('hidden');
         weeklySection.classList.add('hidden');
         transactionsSection.classList.remove('hidden'); // Transactions still visible below yearly
 
@@ -1075,6 +1319,7 @@
         pageMonthly.classList.add('hidden');
         pageYearly.classList.add('hidden');
         pageBudgets.classList.remove('hidden');
+        pageSubscriptions.classList.add('hidden');
         weeklySection.classList.add('hidden');
         transactionsSection.classList.add('hidden');
 
@@ -1084,10 +1329,25 @@
         yearlyFiltersSubbar.classList.add('hidden');
 
         renderBudgetsPage();
+      } else if (page === 'subscriptions') {
+        pageMonthly.classList.add('hidden');
+        pageYearly.classList.add('hidden');
+        pageBudgets.classList.add('hidden');
+        pageSubscriptions.classList.remove('hidden');
+        weeklySection.classList.add('hidden');
+        transactionsSection.classList.add('hidden');
+
+        headerMonthSel.classList.remove('hidden');
+        headerYearSel.classList.add('hidden');
+        monthlyFiltersSubbar.classList.add('hidden');
+        yearlyFiltersSubbar.classList.add('hidden');
+
+        renderSubscriptionsPage();
       } else if (page === 'weekly') {
         pageMonthly.classList.remove('hidden');
         pageYearly.classList.add('hidden');
         pageBudgets.classList.add('hidden');
+        pageSubscriptions.classList.add('hidden');
         weeklySection.classList.remove('hidden');
         transactionsSection.classList.add('hidden');
 
@@ -1102,6 +1362,7 @@
         pageMonthly.classList.remove('hidden');
         pageYearly.classList.add('hidden');
         pageBudgets.classList.add('hidden');
+        pageSubscriptions.classList.add('hidden');
         weeklySection.classList.add('hidden');
         transactionsSection.classList.remove('hidden');
 
@@ -1122,6 +1383,8 @@
         renderYearlyAnalytics();
       } else if (activePage === 'budgets') {
         renderBudgetsPage();
+      } else if (activePage === 'subscriptions') {
+        renderSubscriptionsPage();
       } else {
         renderMonthlyDashboard();
       }
@@ -1203,6 +1466,9 @@
       // Feature 1: Update Monthly Budget Health & Alert Banner
       const budgetStats = getMonthlyBudgetStats(currentMonth);
       updateMonthlyBudgetBanner(budgetStats);
+
+      // Feature 2: Update Upcoming Subscriptions & EMIs Widget
+      renderUpcomingDuesWidget();
 
       // Render Charts
       renderLineChart(monthTx);
@@ -1452,6 +1718,277 @@
                   Edit
                 </button>
                 <button onclick="deleteBudget('${item.id}', '${safeCat}')" class="p-1 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition" title="Delete Budget">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    // =========================================================================
+    // FEATURE 2: RECURRING EXPENSES & SUBSCRIPTION / EMI LOGIC
+    // =========================================================================
+    function getSubscriptionStats() {
+      const today = new Date();
+      const todayDay = today.getDate();
+      const currentYear = today.getFullYear();
+      const currentMonthNum = today.getMonth() + 1; // 1-12
+      const monthPrefix = `${currentYear}-${String(currentMonthNum).padStart(2, '0')}`;
+
+      // Look at transactions this month to identify any payments matching this service
+      const monthExpTx = allTransactions.filter(t => t.transaction_date && t.transaction_date.startsWith(monthPrefix) && !t.is_income);
+
+      let totalMonthly = 0;
+      let totalPaidThisMonth = 0;
+      let paidCount = 0;
+      const pendingList = [];
+
+      const enrichedSubs = allSubscriptions.map(sub => {
+        const amt = parseFloat(sub.amount) || 0;
+        let monthlyEquiv = amt;
+        if (sub.billing_cycle === 'yearly') monthlyEquiv = amt / 12;
+        else if (sub.billing_cycle === 'quarterly') monthlyEquiv = amt / 3;
+
+        if (sub.is_active) {
+          totalMonthly += monthlyEquiv;
+        }
+
+        // Check if marked as paid in current month or matching transaction exists
+        const markedPaidThisMonth = sub.last_paid_date && sub.last_paid_date.startsWith(monthPrefix);
+        const matchingTx = monthExpTx.find(t => {
+          const titleMatch = (t.title || '').toLowerCase().includes(sub.name.toLowerCase());
+          const amtMatch = Math.abs((parseFloat(t.amount) || 0) - amt) < 0.01;
+          return titleMatch && amtMatch;
+        });
+
+        const isPaid = Boolean(markedPaidThisMonth || matchingTx);
+        if (isPaid && sub.is_active) {
+          totalPaidThisMonth += monthlyEquiv;
+          paidCount++;
+        }
+
+        // Calculate days until due
+        const daysUntil = sub.due_day - todayDay;
+        let isOverdue = false;
+        let statusText = '';
+        let statusBadgeClass = '';
+
+        if (isPaid) {
+          statusText = `Paid for ${MONTH_NAMES[currentMonthNum - 1]}`;
+          statusBadgeClass = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
+        } else if (daysUntil < 0) {
+          isOverdue = true;
+          statusText = `Overdue by ${Math.abs(daysUntil)}d (${sub.due_day}th)`;
+          statusBadgeClass = 'bg-rose-500/20 text-rose-300 border-rose-500/30';
+        } else if (daysUntil === 0) {
+          statusText = 'Due Today!';
+          statusBadgeClass = 'bg-amber-500/20 text-amber-300 border-amber-500/40 animate-pulse';
+        } else if (daysUntil <= 3) {
+          statusText = `Due in ${daysUntil}d (${sub.due_day}th)`;
+          statusBadgeClass = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+        } else {
+          statusText = `Due on ${sub.due_day}th (${daysUntil}d)`;
+          statusBadgeClass = 'bg-slate-800 text-slate-300 border-slate-700';
+        }
+
+        const enriched = {
+          ...sub,
+          amountNum: amt,
+          monthlyEquiv,
+          isPaid,
+          isOverdue,
+          daysUntil,
+          statusText,
+          statusBadgeClass
+        };
+
+        if (sub.is_active && !isPaid) {
+          pendingList.push(enriched);
+        }
+
+        return enriched;
+      });
+
+      // Sort pending list: overdue first, then soonest upcoming
+      pendingList.sort((a, b) => a.daysUntil - b.daysUntil);
+
+      return {
+        all: enrichedSubs,
+        pendingList,
+        totalMonthly,
+        totalAnnual: totalMonthly * 12,
+        totalPaidThisMonth,
+        pendingAmount: Math.max(0, totalMonthly - totalPaidThisMonth),
+        paidCount,
+        totalCount: allSubscriptions.length
+      };
+    }
+
+    function renderUpcomingDuesWidget() {
+      const stats = getSubscriptionStats();
+      const badge = document.getElementById('monthlyDuesCountBadge');
+      const container = document.getElementById('monthlyUpcomingDuesList');
+      const navBadge = document.getElementById('subscriptionsDueBadge');
+
+      if (!container) return;
+
+      if (stats.pendingList.length > 0) {
+        if (badge) {
+          badge.innerText = `${stats.pendingList.length} Pending`;
+          badge.className = 'text-xs bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold';
+        }
+        if (navBadge) {
+          navBadge.innerText = `${stats.pendingList.length} Due`;
+          navBadge.classList.remove('hidden');
+        }
+      } else {
+        if (badge) {
+          badge.innerText = 'All Dues Paid ✓';
+          badge.className = 'text-xs bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold';
+        }
+        if (navBadge) navBadge.classList.add('hidden');
+      }
+
+      if (stats.pendingList.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-4 px-3 text-center text-slate-400 bg-slate-800/40 rounded-xl border border-slate-800/80 flex items-center justify-center gap-2 text-xs">
+            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+            <span>All recurring subscriptions & EMIs are settled for this month!</span>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      const showList = stats.pendingList.slice(0, 6);
+      container.innerHTML = showList.map(sub => `
+        <div class="bg-slate-800/90 border ${sub.isOverdue ? 'border-rose-500/40' : 'border-slate-700/80'} rounded-xl p-3 flex items-center justify-between gap-2.5 hover:border-violet-500/40 transition shadow-sm">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5 mb-1">
+              <span class="font-bold text-xs text-white truncate">${escapeHtml(sub.name)}</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded border ${sub.statusBadgeClass} whitespace-nowrap">${sub.statusText}</span>
+            </div>
+            <div class="flex items-center gap-2 text-[11px] text-slate-400">
+              <span class="font-bold text-slate-200">${formatINR(sub.amountNum, false)}</span>
+              <span>•</span>
+              <span class="truncate">${escapeHtml(sub.category)}</span>
+            </div>
+          </div>
+          <button onclick="markSubscriptionPaid('${sub.id}')" class="px-2.5 py-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white rounded-lg text-xs font-bold shadow-md shadow-violet-600/20 flex items-center gap-1 transition whitespace-nowrap">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            <span>Pay</span>
+          </button>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function renderSubscriptionsPage() {
+      const stats = getSubscriptionStats();
+
+      document.getElementById('subTotalMonthly').innerText = formatINR(stats.totalMonthly, false);
+      document.getElementById('subTotalAnnual').innerText = `${formatINR(stats.totalAnnual, false)} / year committed`;
+
+      document.getElementById('subPaidThisMonth').innerText = formatINR(stats.totalPaidThisMonth, false);
+      document.getElementById('subPaidCountText').innerText = `${stats.paidCount} of ${stats.all.length} paid`;
+      document.getElementById('subRemainingDueText').innerText = `${formatINR(stats.pendingAmount, false)} pending`;
+
+      const nextDueEl = document.getElementById('subNextDueName');
+      const nextDueCountEl = document.getElementById('subNextDueCountdown');
+      const nextDueAmtEl = document.getElementById('subNextDueAmount');
+
+      if (stats.pendingList.length > 0) {
+        const next = stats.pendingList[0];
+        nextDueEl.innerText = next.name;
+        nextDueCountEl.innerText = next.statusText;
+        nextDueAmtEl.innerText = formatINR(next.amountNum, false);
+      } else {
+        nextDueEl.innerText = 'All Caught Up!';
+        nextDueCountEl.innerText = 'No pending dues';
+        nextDueAmtEl.innerText = '₹0';
+      }
+
+      document.getElementById('subscriptionsBadgeTotal').innerText = `${stats.all.length} Active`;
+
+      const grid = document.getElementById('subscriptionsGrid');
+      if (stats.all.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-12 text-center text-slate-400 space-y-3">
+            <i data-lucide="repeat" class="w-10 h-10 text-slate-500 mx-auto"></i>
+            <p class="text-sm">No recurring expenses or EMIs tracked yet.</p>
+            <button onclick="openSubscriptionModal()" class="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-bold transition">
+              + Add Your First Subscription / EMI
+            </button>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      grid.innerHTML = stats.all.map(sub => {
+        const safeName = escapeHtml(sub.name);
+        const safeCat = escapeHtml(sub.category);
+        const safeNotes = escapeHtml(sub.notes || '');
+
+        return `
+          <div class="bg-slate-800/80 hover:bg-slate-800 border ${sub.isOverdue ? 'border-rose-500/40' : 'border-slate-800'} rounded-2xl p-4 transition-all duration-200 flex flex-col justify-between gap-3 shadow-lg">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <h4 class="font-bold text-white text-base">${safeName}</h4>
+                  <div class="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5">
+                    <span class="bg-slate-700/80 text-slate-300 px-2 py-0.5 rounded text-[10px] font-semibold">${safeCat}</span>
+                    <span>•</span>
+                    <span class="capitalize text-slate-300 font-medium">${sub.billing_cycle}</span>
+                  </div>
+                </div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${sub.statusBadgeClass}">
+                  ${sub.statusText}
+                </span>
+              </div>
+
+              <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-700/40 space-y-1.5 mt-2">
+                <div class="flex justify-between items-baseline">
+                  <span class="text-xs text-slate-400">Payment Amount:</span>
+                  <span class="text-lg font-black text-white">${formatINR(sub.amountNum, false)}</span>
+                </div>
+                <div class="flex justify-between text-xs text-slate-400">
+                  <span>Due Schedule:</span>
+                  <span class="font-medium text-slate-300">${sub.due_day}th of every ${sub.billing_cycle === 'yearly' ? 'year' : 'month'}</span>
+                </div>
+                ${safeNotes ? `
+                  <div class="text-[11px] text-slate-400 pt-1 border-t border-slate-800 truncate">
+                    <span class="text-slate-500">Note:</span> ${safeNotes}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between text-xs">
+              ${sub.isPaid ? `
+                <span class="text-emerald-400 font-bold flex items-center gap-1">
+                  <i data-lucide="check-circle" class="w-4 h-4"></i>
+                  <span>Paid this month</span>
+                </span>
+              ` : `
+                <button onclick="markSubscriptionPaid('${sub.id}')" class="px-3 py-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white rounded-lg text-xs font-bold shadow-md shadow-violet-600/20 flex items-center gap-1.5 transition">
+                  <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                  <span>Mark as Paid</span>
+                </button>
+              `}
+
+              <div class="flex items-center gap-1.5 ml-auto">
+                <button onclick="openSubscriptionModal('${safeName}', ${sub.amountNum}, '${sub.billing_cycle}', ${sub.due_day}, '${safeCat}', '${safeNotes}', '${sub.id}')" class="px-2.5 py-1 text-slate-300 hover:text-white bg-slate-700/60 hover:bg-slate-700 rounded-lg transition font-medium flex items-center gap-1">
+                  <i data-lucide="edit-3" class="w-3.5 h-3.5 text-indigo-400"></i>
+                  Edit
+                </button>
+                <button onclick="deleteSubscription('${sub.id}', '${safeName}')" class="p-1 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition" title="Delete">
                   <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                 </button>
               </div>
@@ -2276,6 +2813,167 @@
       } catch (err) {
         console.error('Failed to delete budget:', err);
         showToast(`Failed to delete: ${err.message}`, true);
+      }
+    }
+
+    // --- FEATURE 2: RECURRING EXPENSES & SUBSCRIPTION ACTIONS ---
+    async function markSubscriptionPaid(subId) {
+      const sub = allSubscriptions.find(s => String(s.id) === String(subId));
+      if (!sub) return;
+
+      const todayStr = new Date().toISOString().substring(0, 10);
+      const amt = parseFloat(sub.amount) || 0;
+
+      try {
+        // 1. Insert transaction into finance_transactions
+        const txPayload = {
+          title: sub.name,
+          category: sub.category,
+          amount: amt,
+          transaction_date: todayStr,
+          is_income: false,
+          note: `Recurring ${sub.billing_cycle} payment - ${sub.notes || ''}`.trim()
+        };
+
+        const { error: txErr } = await supabaseClient
+          .from('finance_transactions')
+          .insert([txPayload]);
+
+        if (txErr) throw txErr;
+
+        // 2. Update last_paid_date in finance_subscriptions
+        const { error: subErr } = await supabaseClient
+          .from('finance_subscriptions')
+          .update({ last_paid_date: todayStr })
+          .eq('id', subId);
+
+        if (subErr) throw subErr;
+
+        showToast(`✓ Paid ${sub.name}: ${formatINR(amt, false)} logged as expense!`);
+        await loadTransactions();
+      } catch (err) {
+        console.error('Mark as paid failed:', err);
+        showToast(`Failed: ${err.message}`, true);
+      }
+    }
+
+    function openSubscriptionModal(name = '', amt = '', cycle = 'monthly', dueDay = '', cat = 'Entertainment', notes = '', id = '') {
+      document.getElementById('editSubId').value = id || '';
+      document.getElementById('subNameInput').value = name || '';
+      document.getElementById('subAmountInput').value = amt || '';
+      document.getElementById('subCycleInput').value = cycle || 'monthly';
+      document.getElementById('subDueDayInput').value = dueDay || new Date().getDate();
+      document.getElementById('subCategoryInput').value = cat || 'Entertainment';
+      document.getElementById('subNotesInput').value = notes || '';
+      document.getElementById('subscriptionModalTitle').innerText = id ? 'Edit Subscription / EMI' : 'Add Subscription / EMI';
+
+      renderSubQuickPills();
+      document.getElementById('subscriptionModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeSubscriptionModal() {
+      document.getElementById('subscriptionModal').classList.add('hidden');
+    }
+
+    const SUB_PRESETS = [
+      { name: 'Netflix 4K', cat: 'Entertainment', amt: 649 },
+      { name: 'Car Loan EMI', cat: 'EMI / Loans', amt: 14500 },
+      { name: 'Home Loan EMI', cat: 'EMI / Loans', amt: 35000 },
+      { name: 'Spotify Premium', cat: 'Entertainment', amt: 119 },
+      { name: 'JioFiber WiFi', cat: 'Utilities', amt: 1179 },
+      { name: 'Gym Membership', cat: 'Gym', amt: 2500 }
+    ];
+
+    function renderSubQuickPills() {
+      const container = document.getElementById('subQuickPills');
+      if (!container) return;
+      container.innerHTML = SUB_PRESETS.map(p => `
+        <button type="button" onclick="selectSubPreset('${p.name}', '${p.cat}', ${p.amt})" class="px-2 py-0.5 text-[11px] rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700 transition">
+          ${p.name}
+        </button>
+      `).join('');
+    }
+
+    function selectSubPreset(name, cat, amt) {
+      document.getElementById('subNameInput').value = name;
+      document.getElementById('subCategoryInput').value = cat;
+      document.getElementById('subAmountInput').value = amt;
+    }
+
+    document.getElementById('subscriptionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('editSubId').value.trim();
+      const name = document.getElementById('subNameInput').value.trim();
+      const amount = parseFloat(document.getElementById('subAmountInput').value);
+      const cycle = document.getElementById('subCycleInput').value;
+      const dueDay = parseInt(document.getElementById('subDueDayInput').value, 10);
+      const category = document.getElementById('subCategoryInput').value;
+      const notes = document.getElementById('subNotesInput').value.trim();
+
+      if (!name) {
+        showToast('Please enter a name for the subscription', true);
+        return;
+      }
+      if (!amount || amount <= 0) {
+        showToast('Please enter a valid positive amount', true);
+        return;
+      }
+      if (!dueDay || dueDay < 1 || dueDay > 31) {
+        showToast('Due day must be between 1 and 31', true);
+        return;
+      }
+
+      const payload = {
+        name,
+        amount,
+        billing_cycle: cycle,
+        due_day: dueDay,
+        category,
+        notes,
+        is_active: true
+      };
+
+      try {
+        if (id) {
+          const { error } = await supabaseClient
+            .from('finance_subscriptions')
+            .update(payload)
+            .eq('id', id);
+          if (error) throw error;
+          showToast(`Updated "${name}"!`);
+        } else {
+          const { error } = await supabaseClient
+            .from('finance_subscriptions')
+            .insert([payload]);
+          if (error) throw error;
+          showToast(`Added "${name}"!`);
+        }
+
+        closeSubscriptionModal();
+        await loadTransactions();
+      } catch (err) {
+        console.error('Subscription save failed:', err);
+        showToast(`Failed to save: ${err.message}`, true);
+      }
+    });
+
+    async function deleteSubscription(id, name) {
+      if (!confirm(`Are you sure you want to delete "${name}" from recurring subscriptions?`)) return;
+
+      try {
+        const { error } = await supabaseClient
+          .from('finance_subscriptions')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+
+        showToast(`Deleted "${name}"`);
+        await loadTransactions();
+      } catch (err) {
+        console.error('Subscription delete failed:', err);
+        showToast(`Delete failed: ${err.message}`, true);
       }
     }
 
